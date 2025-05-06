@@ -10,23 +10,24 @@ import {
 import ReactPlayer from 'react-player';
 import { QuizContent } from '../quiz/QuizContent';
 
-// Bunny Video Player Component
-const BunnyVideoPlayer: React.FC<{
+// Add type for ReactPlayer instance
+type ReactPlayerType = ReactPlayer & {
+  seekTo: (amount: number) => void;
+};
+
+interface BunnyVideoPlayerProps {
   url: string;
   playing: boolean;
   onProgress: (state: { played: number; playedSeconds: number; loaded: number; loadedSeconds: number }) => void;
   onDuration: (duration: number) => void;
-}> = ({ url, playing, onProgress, onDuration }) => {
+}
+
+// Bunny Video Player Component
+const BunnyVideoPlayer: React.FC<BunnyVideoPlayerProps> = ({ url, playing, onProgress, onDuration }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const playerInterval = useRef<NodeJS.Timeout | null>(null);
+  const playerInterval = useRef<number | null>(null);
   
-  // Extract video ID from Bunny URL
-  const getVideoId = (url: string) => {
-    const parts = url.split('/');
-    return parts[parts.length - 1];
-  };
-
   // Setup message listener for communication with iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -79,7 +80,7 @@ const BunnyVideoPlayer: React.FC<{
       }
       
       // Set up progress tracking
-      playerInterval.current = setInterval(() => {
+      playerInterval.current = window.setInterval(() => {
         if (iframeRef.current) {
           // Try to get current time via postMessage
           iframeRef.current.contentWindow?.postMessage({ action: 'getCurrentTime' }, '*');
@@ -118,17 +119,47 @@ const CourseViewer: React.FC = () => {
   const [activeUnit, setActiveUnit] = useState<number | null>(null);
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [collapsedUnits, setCollapsedUnits] = useState<string[]>([]);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
-  const playerRef = useRef<ReactPlayer>(null);
+  const playerRef = useRef<ReactPlayerType>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [showCompleteButton, setShowCompleteButton] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [lessonDetails, setLessonDetails] = useState<VideoLessonResponse['data'] | QuizLessonResponse['data'] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleLessonSelect = async (unitIndex: number, lessonIndex: number) => {
+    if (courseDetails) {
+      const unit = courseDetails.units[unitIndex];
+      const lesson = unit.lessons[lessonIndex];
+      setSelectedLesson(lesson);
+      setActiveUnit(unitIndex);
+      setActiveLesson(lessonIndex);
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await fetchLessonDetails(lesson.id);
+        if (response?.success) {
+          setLessonDetails(response.data);
+        } else {
+          setError('Failed to load lesson details');
+        }
+      } catch (err) {
+        setError('An error occurred while loading the lesson');
+      } finally {
+        setLoading(false);
+      }
+
+      // Update URL parameters
+      searchParams.set('unit', unitIndex.toString());
+      searchParams.set('lesson', lessonIndex.toString());
+      setSearchParams(searchParams);
+    }
+  };
 
   // Load course details and initialize first lesson
   useEffect(() => {
@@ -148,29 +179,18 @@ const CourseViewer: React.FC = () => {
             
             if (!isNaN(unitIndex) && !isNaN(lessonIndex) && 
                 unitIndex >= 0 && unitIndex < response.data.units.length) {
-              const unit = response.data.units[unitIndex];
-              if (unit && lessonIndex >= 0 && lessonIndex < unit.lessons.length) {
-                setActiveUnit(unitIndex);
-                setActiveLesson(lessonIndex);
-                handleLessonSelect(unit.lessons[lessonIndex]);
-                return;
-              }
+              await handleLessonSelect(unitIndex, lessonIndex);
             }
-          }
-          
-          // If no valid URL parameters, load first lesson
-          const firstUnit = response.data.units[0];
-          if (firstUnit && firstUnit.lessons.length > 0) {
-            setActiveUnit(0);
-            setActiveLesson(0);
-            handleLessonSelect(firstUnit.lessons[0]);
+          } else {
+            // Load first lesson by default
+            await handleLessonSelect(0, 0);
           }
         }
       }
     };
 
     loadCourseDetails();
-  }, [courseId, fetchCourseDetails]);
+  }, [courseId, fetchCourseDetails, handleLessonSelect, searchParams]);
 
   useEffect(() => {
     if (courseDetails) {
@@ -197,33 +217,7 @@ const CourseViewer: React.FC = () => {
 
     if (courseDetails) {
       const lesson = courseDetails.units[unitIndex].lessons[lessonIndex];
-      await handleLessonSelect(lesson);
-    }
-  };
-
-  const handleLessonSelect = async (lesson: Lesson) => {
-    setSelectedLesson(lesson);
-    setLoading(true);
-    setError(null);
-    setLessonDetails(null);
-
-    try {
-      const response = await fetchLessonDetails(lesson.id);
-      if (response?.success) {
-        setLessonDetails(response.data);
-        // Reset video state when switching lessons
-        if (lesson.type === 'Video') {
-          setPlaying(false);
-          setProgress(0);
-          setShowCompleteButton(false);
-        }
-      } else {
-        setError('Failed to load lesson details');
-      }
-    } catch (err) {
-      setError('An error occurred while loading the lesson');
-    } finally {
-      setLoading(false);
+      await handleLessonSelect(unitIndex, lessonIndex);
     }
   };
 

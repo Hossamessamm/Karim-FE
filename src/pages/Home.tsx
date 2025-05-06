@@ -2,8 +2,12 @@ import React from 'react';
 import CourseList from '../components/course/CourseList';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../contexts/ThemeContext';
 import teacherImage from '../assets/images/teachers/omar-elkholy.png';
+
+interface Stat {
+  number: string;
+  label: string;
+}
 
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -14,6 +18,12 @@ const Home: React.FC = () => {
       coursesSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const stats: Stat[] = [
+    { number: '4000+', label: 'طالب مشترك' },
+    { number: '99+', label: 'فيديو تعليمي' },
+    { number: '24 ساعة', label: 'دعم متواصل' }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-primary-light/5 to-white" dir="rtl">
@@ -108,11 +118,7 @@ const Home: React.FC = () => {
 
               {/* Quick stats */}
               <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-6 sm:pt-8 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                {[
-                  { number: '4000+', label: 'طالب مشترك' },
-                  { number: '99+', label: 'فيديو تعليمي' },
-                  { number: '24 ساعة', label: 'دعم متواصل' }
-                ].map((stat, index) => (
+                {stats.map((stat, index) => (
                   <div key={index} className="text-center px-2 sm:px-4 py-2 sm:py-3 rounded-xl bg-white/50 backdrop-blur-sm border border-primary/10 hover:border-primary/20 transition-all duration-300 group">
                     <div className="text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
                       {stat.number}
