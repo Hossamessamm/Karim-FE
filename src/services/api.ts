@@ -1,10 +1,8 @@
 import axios from 'axios';
 import { getDeviceId } from '../utils/deviceId';
-import { BASE_URL } from '../apiConfig';
 
 // Update to use the proxy setup in setupProxy.js instead of direct URL
 const API_URL = 'https://platform-test.runasp.net';
-
 
 // Create axios instance with base configuration
 const api = axios.create({

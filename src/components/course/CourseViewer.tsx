@@ -4,7 +4,6 @@ import {
   useCourseApi, 
   CourseDetails, 
   Lesson,
-  VideoLesson,
   VideoLessonResponse,
   QuizLessonResponse 
 } from '../../hooks/useCourseApi';
@@ -301,37 +300,7 @@ const CourseViewer: React.FC = () => {
 
   // Function to check if URL is a Bunny.net embed
   const isBunnyVideo = (url: string): boolean => {
-    return url.includes('iframe.mediadelivery.net') || url.includes('bunnycdn.com');
-  };
-
-  // Add attachment section to the video player area
-  const renderAttachment = () => {
-    if (lessonDetails && isVideoLessonResponse(lessonDetails) && lessonDetails.attachmentUrl && lessonDetails.attachmentTitle) {
-      return (
-        <div className="mt-4 p-4 bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3 rtl:space-x-reverse">
-              <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-              </svg>
-              <span className="text-gray-700 font-medium">{lessonDetails.attachmentTitle}</span>
-            </div>
-            <a 
-              href={lessonDetails.attachmentUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-3 py-1.5 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary-dark transition-colors duration-200"
-            >
-              <svg className="w-4 h-4 mr-2 rtl:ml-2 rtl:mr-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              تحميل المرفق
-            </a>
-          </div>
-        </div>
-      );
-    }
-    return null;
+    return url.includes('iframe.mediadelivery.net');
   };
 
   if (isLoading) {
@@ -386,22 +355,7 @@ const CourseViewer: React.FC = () => {
     }
   };
 
-  const goToPrevLesson = () => {
-    if (activeLesson > 0) {
-      const prevLesson = activeLesson - 1;
-      setActiveLesson(prevLesson);
-      navigate(`?unit=${activeUnit}&lesson=${prevLesson}`);
-    } else if (activeUnit > 0) {
-      const prevUnit = activeUnit - 1;
-      const lastLessonIndex = courseDetails.units[prevUnit].lessons.length - 1;
-      setActiveUnit(prevUnit);
-      setActiveLesson(lastLessonIndex);
-      navigate(`?unit=${prevUnit}&lesson=${lastLessonIndex}`);
-    }
-  };
-
   const hasNextLesson = activeLesson < currentUnit.lessons.length - 1 || activeUnit < courseDetails.units.length - 1;
-  const hasPrevLesson = activeLesson > 0 || activeUnit > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" dir="rtl">

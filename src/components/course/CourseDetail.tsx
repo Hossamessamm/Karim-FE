@@ -12,7 +12,6 @@ const CourseDetail: React.FC = () => {
   const navigate = useNavigate();
   const { fetchCourseDetails, isLoading, error } = useCourseApi();
   const [selectedSection, setSelectedSection] = useState('curriculum');
-  const [collapsedUnits, setCollapsedUnits] = useState<string[]>([]);
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
   const [showEnrollmentPopup, setShowEnrollmentPopup] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -45,14 +44,6 @@ const CourseDetail: React.FC = () => {
 
     checkUserEnrollment();
   }, [id, currentUser?.id]);
-
-  const toggleUnit = (unitId: number) => {
-    setCollapsedUnits(prev => 
-      prev.includes(String(unitId)) 
-        ? prev.filter(id => id !== String(unitId))
-        : [...prev, String(unitId)]
-    );
-  };
 
   const handleEnroll = () => {
     if (!isAuthenticated) {

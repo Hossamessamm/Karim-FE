@@ -3,13 +3,10 @@ import CourseList from '../components/course/CourseList';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { themeConfig } from '../styles/colors';
-import { courseSectionTranslations } from '../utils/gradeTranslations';
 import teacherImage from '../assets/images/teachers/omar-elkholy.png';
 
 const Home: React.FC = () => {
-  const { isAuthenticated, currentUser } = useAuth();
-  const { colors, componentColors } = useTheme();
+  const { isAuthenticated } = useAuth();
   
   const scrollToCourses = () => {
     const coursesSection = document.getElementById('courses-section');
