@@ -136,23 +136,19 @@ const CourseGrid = React.memo(({
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  gridRef: React.RefObject<HTMLDivElement | null>;
+  gridRef: (node: HTMLDivElement | null) => void;
 }) => {
   const animationRef = useScrollAnimation();
+
+  const setRefs = useCallback((element: HTMLDivElement | null) => {
+    gridRef(element);
+    animationRef(element);
+  }, [gridRef, animationRef]);
 
   return (
     <>
       <div 
-        ref={(el) => {
-          if (el) {
-            if (gridRef) {
-              gridRef.current = el;
-            }
-            if (animationRef) {
-              animationRef.current = el;
-            }
-          }
-        }}
+        ref={setRefs}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4"
       >
         {courses.map((course) => (
@@ -187,6 +183,10 @@ const CourseList: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+
+  const setGridRef = useCallback((node: HTMLDivElement | null) => {
+    courseGridRef.current = node;
+  }, []);
 
   // Fetch courses when grade or page changes
   useEffect(() => {
@@ -271,7 +271,7 @@ const CourseList: React.FC = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          gridRef={courseGridRef}
+          gridRef={setGridRef}
         />
       )}
     </div>

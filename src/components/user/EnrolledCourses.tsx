@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCourseApi, Course } from '../../hooks/useCourseApi';
-import { CourseCardShimmer } from '../common/Shimmer';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
+import { useCourseApi } from '../../hooks/useCourseApi';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
+import { Course } from '../../types/course';
 
 // Constants for pagination
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 9;
 const INITIAL_VISIBLE_PAGES = 5;
 
 // Pagination Component
@@ -59,58 +59,53 @@ const Pagination = React.memo(({
       >
         Next
       </button>
-        </div>
+    </div>
   );
 });
 
 // Course Card Component
 const CourseCard = React.memo(({ course }: { course: Course }) => {
   return (
-    <div className="bg-white rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:shadow-xl hover:-translate-y-1">
-      <div className="relative aspect-video w-full overflow-hidden">
-        <img 
-          src={course.imagePath} 
-          alt={course.courseName} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">{course.courseName}</h3>
-                </div>
-                <p className="text-gray-600 mb-4 text-sm line-clamp-2">{course.description}</p>
-                
-                <div className="mt-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div className="bg-secondary h-2.5 rounded-full" style={{ width: '0%' }}></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">0% complete</p>
-                </div>
-                
-                <div className="mt-4 flex space-x-2">
-                  <Link 
-                    to={`/course-player/${course.id}`}
-            className="flex-1 bg-primary hover:bg-primary-dark text-white px-3 py-2 rounded text-sm font-medium text-center transition-colors"
-                  >
-                    Continue Learning
-                  </Link>
-                  <Link 
-                    to={`/courses/${course.id}`}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded text-sm font-medium transition-colors"
-                  >
-                    Details
-                  </Link>
-                </div>
-              </div>
-            </div>
+    <div className="course-card-animate bg-white rounded-lg overflow-hidden shadow-md transition-transform duration-300 hover:shadow-xl hover:-translate-y-1">
+      <div className="aspect-w-16 aspect-h-9">
+        <img
+          src={course.imagePath || '/placeholder-course.jpg'}
+          alt={course.courseName}
+          className="object-cover w-full h-full"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.courseName}</h3>
+        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{course.description}</p>
+        <div className="flex justify-between items-center">
+          <span className="text-primary font-medium">{course.grade || 'All Grades'}</span>
+          <Link
+            to={`/course/${course.id}`}
+            className="text-sm text-primary hover:text-primary-dark font-medium"
+          >
+            View Course →
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 });
 
 // Loading Grid Component
 const LoadingGrid = React.memo(() => (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {Array.from({ length: ITEMS_PER_PAGE }).map((_, index) => (
-      <CourseCardShimmer key={`shimmer-${index}`} />
+      <div key={`shimmer-${index}`} className="bg-white rounded-lg overflow-hidden shadow-md animate-pulse">
+        <div className="aspect-w-16 aspect-h-9 bg-gray-200" />
+        <div className="p-4">
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-2" />
+          <div className="h-4 bg-gray-200 rounded w-full mb-4" />
+          <div className="flex justify-between items-center">
+            <div className="h-4 bg-gray-200 rounded w-1/4" />
+            <div className="h-4 bg-gray-200 rounded w-1/3" />
+          </div>
+        </div>
+      </div>
     ))}
   </div>
 ));
@@ -127,24 +122,20 @@ const CourseGrid = React.memo(({
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
-  gridRef: React.RefObject<HTMLDivElement | null>;
+  gridRef: (node: HTMLDivElement | null) => void;
 }) => {
   const animationRef = useScrollAnimation();
+
+  const setRefs = useCallback((element: HTMLDivElement | null) => {
+    gridRef(element);
+    animationRef(element);
+  }, [gridRef, animationRef]);
 
   return (
     <>
       <div 
-        ref={(el) => {
-          if (el) {
-            if (gridRef) {
-              gridRef.current = el;
-            }
-            if (animationRef) {
-              animationRef.current = el;
-            }
-          }
-        }}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto px-4"
+        ref={setRefs}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
       >
         {courses.map((course) => (
           <CourseCard key={course.id} course={course} />
@@ -161,10 +152,10 @@ const CourseGrid = React.memo(({
   );
 });
 
-// Main EnrolledCourses Component
+// Main Component
 const EnrolledCourses: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, currentUser } = useAuth();
+  const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const courseGridRef = useRef<HTMLDivElement | null>(null);
   const { fetchEnrolledCourses, isLoading, error } = useCourseApi();
@@ -172,10 +163,14 @@ const EnrolledCourses: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
 
+  const setGridRef = useCallback((node: HTMLDivElement | null) => {
+    courseGridRef.current = node;
+  }, []);
+
   // Fetch enrolled courses when page changes
   useEffect(() => {
     const loadCourses = async () => {
-      if (!isAuthenticated || !currentUser) {
+      if (!user) {
         navigate('/login', { state: { from: '/enrolled-courses' } });
         return;
       }
@@ -189,12 +184,12 @@ const EnrolledCourses: React.FC = () => {
     };
 
     loadCourses();
-  }, [currentPage, fetchEnrolledCourses, isAuthenticated, currentUser, navigate]);
+  }, [currentPage, fetchEnrolledCourses, user, navigate]);
 
   // Handle page change with smooth scroll
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-    // Smooth scroll to the course grid
+    // Scroll to the course grid with a small delay to ensure content is rendered
     setTimeout(() => {
       courseGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -202,11 +197,8 @@ const EnrolledCourses: React.FC = () => {
 
   if (error) {
     return (
-      <div className="container mx-auto p-4">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
-        </div>
+      <div className="text-center text-red-600 p-4">
+        Error loading courses: {error}
       </div>
     );
   }
@@ -220,6 +212,7 @@ const EnrolledCourses: React.FC = () => {
         </div>
       </div>
 
+      {/* Course Grid with Pagination */}
       {isLoading ? (
         <LoadingGrid />
       ) : courses.length === 0 ? (
@@ -239,7 +232,7 @@ const EnrolledCourses: React.FC = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          gridRef={courseGridRef}
+          gridRef={setGridRef}
         />
       )}
     </div>

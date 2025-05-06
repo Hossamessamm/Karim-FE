@@ -8,9 +8,14 @@ export interface Lesson {
 
 export interface Course {
   id: string;
-  title: string;
+  courseName: string;
+  term?: string;
+  active?: boolean;
+  price?: number;
+  grade?: string;
   description: string;
-  lessons: Lesson[];
+  imagePath: string;
+  modificationDate: string;
 }
 
 export interface CourseState {
