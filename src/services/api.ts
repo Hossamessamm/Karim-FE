@@ -2,7 +2,7 @@ import axios from 'axios';
 import { getDeviceId } from '../utils/deviceId';
 
 // Update to use the proxy setup in setupProxy.js instead of direct URL
-const API_URL = 'https://platform-test.runasp.net';
+const API_URL = 'https://api.ibrahim-magdy.com';
 
 // Create axios instance with base configuration
 const api = axios.create({
@@ -17,23 +17,23 @@ const api = axios.create({
 
 // Request interceptor for handling common request issues
 api.interceptors.request.use(
-  (config) => {
+  (config: any) => {
     // Add device ID to headers
     config.headers['Deviceid'] = getDeviceId();
     console.log('API Request:', config.method, config.url, config.data);
     return config;
   },
-  (error) => {
+  (error: any) => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for handling common response issues
 api.interceptors.response.use(
-  (response) => {
+  (response: any) => {
     return response;
   },
-  (error) => {
+  (error: any) => {
     if (error.response && error.response.status === 0) {
       // CORS error or network error
       console.error('CORS or Network Error:', error);
@@ -72,7 +72,7 @@ export const authService = {
     try {
       const response = await api.post('/api/Auth/logout');
       console.log('Logout response:', response);
-      return { success: true, message: response.data.message };
+      return { success: true, message: (response.data as any).message };
     } catch (error: any) {
       console.error('Logout error details:', error);
       return { 

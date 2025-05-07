@@ -1,1 +1,1 @@
-export const BASE_URL = 'https://platform-test.runasp.net/api'; 
+export const BASE_URL = 'https://api.ibrahim-magdy.com/api'; 

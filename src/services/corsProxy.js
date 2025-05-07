@@ -15,7 +15,7 @@ const corsProxy = {
        cors-anywhere --port 8080
     
     3. Then update your API_URL in api.ts to use:
-       const API_URL = 'https://localhost:8080/https://platform-test.runasp.net';
+       const API_URL = 'https://localhost:8080/https://api.ibrahim-magdy.com';
     
     This will proxy all requests through your local CORS proxy.
   `,
@@ -36,7 +36,7 @@ const corsProxy = {
         // Ensure we maintain the /api prefix in the URL
         const path = url.startsWith('/') ? url : '/' + url;
         // Don't add /api if it's already there
-        return `https://localhost:8080/${BASE_URL}${path}`;
+        return `https://localhost:8080/https://api.ibrahim-magdy.com${path}`;
       }
     }
     
