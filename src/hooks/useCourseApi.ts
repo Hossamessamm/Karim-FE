@@ -224,36 +224,74 @@ const api = axios.create({
   }
 });
 
+// Increase cache duration for active courses
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const ACTIVE_COURSES_CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
 // Request deduplication
 const pendingRequests = new Map<string, Promise<any>>();
+const requestTimestamps = new Map<string, number>();
 
 const getRequestKey = (url: string, params?: any): string => {
   const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
   if (!params) return normalizedUrl;
-  return `${normalizedUrl}?${new URLSearchParams(params).toString()}`;
+  const sortedParams = Object.keys(params)
+    .sort()
+    .reduce((acc: Record<string, any>, key) => {
+      acc[key] = params[key];
+      return acc;
+    }, {});
+  return `${normalizedUrl}?${new URLSearchParams(sortedParams).toString()}`;
+};
+
+const shouldMakeNewRequest = (key: string): boolean => {
+  const lastRequestTime = requestTimestamps.get(key);
+  if (!lastRequestTime) return true;
+
+  const now = Date.now();
+  const isActiveCourseRequest = key.includes('/AdminStudent/CourseActive');
+  const cacheDuration = isActiveCourseRequest ? ACTIVE_COURSES_CACHE_DURATION : CACHE_DURATION;
+  
+  return now - lastRequestTime > cacheDuration;
 };
 
 const executeRequest = async <T>(
   key: string,
   requestFn: () => Promise<T>
 ): Promise<T> => {
+  // Check for existing request
   const existingRequest = pendingRequests.get(key);
   if (existingRequest) {
     console.log(`Using existing request for ${key}`);
     return existingRequest as Promise<T>;
   }
 
+  // Check if we should make a new request based on cache
+  if (!shouldMakeNewRequest(key)) {
+    const cached = getCachedResponse(key);
+    if (cached) {
+      console.log(`Using cached response for ${key}`);
+      return cached as T;
+    }
+  }
+
+  // Create new request
+  console.log(`Creating new request for ${key}`);
   const request = requestFn().finally(() => {
-    pendingRequests.delete(key);
+    // Remove the request from pending after a short delay
+    setTimeout(() => {
+      pendingRequests.delete(key);
+    }, 1000);
   });
   
   pendingRequests.set(key, request);
+  requestTimestamps.set(key, Date.now());
+  
   return request;
 };
 
 // Cache for successful responses
 const responseCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const getCachedResponse = (key: string) => {
   const cached = responseCache.get(key);
@@ -312,6 +350,33 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add cleanup for request tracking
+useEffect(() => {
+  const cleanup = () => {
+    const now = Date.now();
+    
+    // Clean up old request timestamps
+    requestTimestamps.forEach((timestamp, key) => {
+      const isActiveCourseRequest = key.includes('/AdminStudent/CourseActive');
+      const cacheDuration = isActiveCourseRequest ? ACTIVE_COURSES_CACHE_DURATION : CACHE_DURATION;
+      
+      if (now - timestamp > cacheDuration) {
+        requestTimestamps.delete(key);
+        responseCache.delete(key);
+      }
+    });
+  };
+
+  const intervalId = setInterval(cleanup, CACHE_DURATION);
+  
+  return () => {
+    clearInterval(intervalId);
+    pendingRequests.clear();
+    requestTimestamps.clear();
+    responseCache.clear();
+  };
+}, []);
 
 export const useCourseApi = () => {
   const [isLoading, setIsLoading] = useState(false);

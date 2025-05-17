@@ -196,50 +196,61 @@ const CourseList: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>(currentUser?.grade || grades[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const courseGridRef = useRef<HTMLDivElement | null>(null);
-  const observerRef = useRef<HTMLDivElement | null>(null);
   const { getCourses, isLoading, error } = useCourseApi();
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const setGridRef = useCallback((node: HTMLDivElement | null) => {
-    courseGridRef.current = node;
-  }, []);
+  // Memoize the API call function to prevent recreation on every render
+  const fetchCourses = useCallback(async (grade: string, page: number) => {
+    const response = await getCourses(grade, page, ITEMS_PER_PAGE);
+    if (response?.success) {
+      setCourses(response.data.courses);
+      setTotalPages(response.data.totalPages);
+      setTotalCount(response.data.totalCount);
+    }
+  }, [getCourses]);
 
-  // Load courses when grade or page changes
+  // Load courses only when grade or page changes
   useEffect(() => {
-    const loadCourses = async () => {
-      const response = await getCourses(selectedGrade, currentPage, ITEMS_PER_PAGE);
-      if (response?.success) {
-        setCourses(response.data.courses);
-        setTotalPages(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
-      }
-    };
+    if (!isInitialLoad) {
+      fetchCourses(selectedGrade, currentPage);
+    }
+  }, [selectedGrade, currentPage, fetchCourses, isInitialLoad]);
 
-    loadCourses();
-  }, [selectedGrade, currentPage, getCourses]);
+  // Initial load effect
+  useEffect(() => {
+    if (isInitialLoad) {
+      fetchCourses(selectedGrade, 1);
+      setIsInitialLoad(false);
+    }
+  }, [selectedGrade, fetchCourses, isInitialLoad]);
 
-  // Reset page when grade changes
+  // Reset page when grade changes, but don't trigger a fetch
   useEffect(() => {
     setCurrentPage(1);
   }, [selectedGrade]);
 
   // Memoize the grade change handler
   const handleGradeChange = useCallback((grade: string) => {
-    setSelectedGrade(grade);
-  }, []);
+    if (grade !== selectedGrade) {
+      setSelectedGrade(grade);
+    }
+  }, [selectedGrade]);
 
-  // Handle page change with smooth scroll to first course
+  // Handle page change with debounced scroll
   const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-    // Scroll to the course grid with a small delay to ensure content is rendered
-    setTimeout(() => {
-      courseGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-  }, []);
+    if (page !== currentPage) {
+      setCurrentPage(page);
+      // Debounce the scroll to prevent unnecessary re-renders
+      setTimeout(() => {
+        courseGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [currentPage]);
 
-  // Memoize grade buttons
+  // Memoize grade buttons to prevent unnecessary re-renders
   const gradeButtons = useMemo(() => (
     <div className="flex flex-wrap gap-3 justify-center">
       {grades.map((grade) => (
@@ -253,6 +264,14 @@ const CourseList: React.FC = () => {
     </div>
   ), [selectedGrade, handleGradeChange]);
 
+  // Memoize course stats to prevent unnecessary re-renders
+  const courseStats = useMemo(() => (
+    <CourseStats
+      coursesCount={totalCount}
+      selectedGrade={selectedGrade}
+    />
+  ), [totalCount, selectedGrade]);
+
   if (error) {
     return (
       <div className="text-center text-red-600 p-4">
@@ -263,25 +282,19 @@ const CourseList: React.FC = () => {
 
   return (
     <div className="space-y-8" dir="rtl">
-      {/* Modern Grade Selection */}
       <div className="max-w-7xl mx-auto">
-        {isLoading ? <GradeSelectionShimmer /> : gradeButtons}
+        {isLoading && isInitialLoad ? <GradeSelectionShimmer /> : gradeButtons}
         
-        {/* Course Stats */}
         <div className="mt-8 flex justify-center">
-          {isLoading ? (
+          {isLoading && isInitialLoad ? (
             <CourseStatsShimmer />
           ) : (
-            <CourseStats
-              coursesCount={totalCount}
-              selectedGrade={selectedGrade}
-            />
+            courseStats
           )}
         </div>
       </div>
 
-      {/* Course Grid with Pagination */}
-      {isLoading ? (
+      {isLoading && isInitialLoad ? (
         <LoadingGrid />
       ) : (
         <CourseGrid
@@ -289,11 +302,11 @@ const CourseList: React.FC = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
-          gridRef={setGridRef}
+          gridRef={courseGridRef.current}
         />
       )}
     </div>
   );
 };
 
-export default CourseList; 
+export default React.memo(CourseList); 
