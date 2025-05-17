@@ -356,7 +356,14 @@ export const useCourseApi = () => {
   ): Promise<CourseResponse> => {
     const formattedGrade = formatGrade(grade);
     const params = { grade: formattedGrade, pagenumber: page, pagesize: pageSize };
-    const key = getRequestKey('/Student/Courses', params);
+    const key = getRequestKey('/AdminStudent/CourseActive', params);
+
+    console.log('Fetching active courses:', {
+      grade: formattedGrade,
+      page,
+      pageSize,
+      endpoint: '/AdminStudent/CourseActive'
+    });
 
     // Check cache first
     const cached = getCachedResponse(key);
@@ -367,12 +374,34 @@ export const useCourseApi = () => {
 
     return executeRequest<CourseResponse>(key, async () => {
       try {
-        const response = await api.get<ApiResponse<CourseListData>>('/Student/Courses', { params });
+        const response = await api.get<ApiResponse<CourseListData>>('/AdminStudent/CourseActive', { params });
         
+        console.log('Active courses response:', {
+          success: response.data.success,
+          totalCount: response.data.data.totalCount,
+          coursesCount: response.data.data.courses.length,
+          firstCourse: response.data.data.courses[0]?.courseName
+        });
+
         const result: CourseResponse = {
           success: response.data.success,
           message: response.data.message,
-          data: response.data.data
+          data: {
+            totalCount: response.data.data.totalCount,
+            totalPages: response.data.data.totalPages,
+            currentPage: response.data.data.currentPage,
+            pageSize: response.data.data.pageSize,
+            courses: response.data.data.courses.map(course => ({
+              ...course,
+              // Ensure all required fields are present
+              term: course.term || 'First',
+              active: course.active ?? true,
+              price: course.price ?? 0,
+              grade: course.grade || formattedGrade,
+              description: course.description || '',
+              imagePath: course.imagePath || 'https://dummyimage.com/600x400/000/fff'
+            }))
+          }
         };
         
         // Cache successful response
@@ -382,13 +411,17 @@ export const useCourseApi = () => {
         
         return result;
       } catch (error: any) {
-        console.error('Error fetching courses:', error);
+        console.error('Error fetching active courses:', {
+          error: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
         
         // If it's a 404, return an empty course list
         if (error.response?.status === 404) {
           const emptyResponse: CourseResponse = {
             success: true,
-            message: 'No courses found for this grade',
+            message: 'No active courses found for this grade',
             data: {
               totalCount: 0,
               totalPages: 0,
