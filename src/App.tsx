@@ -17,9 +17,9 @@ import Register from './components/auth/Register';
 import ResetPassword from './components/auth/ResetPassword';
 import OtpVerification from './components/auth/OtpVerification';
 import Profile from './components/user/Profile';
-import EnrolledCourses from './components/user/EnrolledCourses';
 import CourseDetail from './components/course/CourseDetail';
 import CourseViewer from './components/course/CourseViewer';
+import EnrolledCourses from './components/user/EnrolledCourses';
 
 function App() {
   return (

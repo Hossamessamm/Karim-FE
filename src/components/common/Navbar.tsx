@@ -21,14 +21,6 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const handleMyCourses = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    navigate('/enrolled-courses');
-  };
-
   const navLinkClasses = (path: string) => `
     px-4 py-2 text-sm font-medium rounded-full transition-all duration-200
     ${isCurrentPath(path)
@@ -72,23 +64,20 @@ const Navbar: React.FC = () => {
               <Link to="/about" className={navLinkClasses('/about')}>
                 عن المنصة
               </Link>
-              {!isAuthenticated && (
-                <button
-                  onClick={scrollToCourses}
-                  className={`${navLinkClasses('/courses')} cursor-pointer`}
-                >
-                  الدورات
-                </button>
-              )}
               <button
-                onClick={handleMyCourses}
-                className={`${navLinkClasses('/enrolled-courses')} cursor-pointer`}
+                onClick={scrollToCourses}
+                className={`${navLinkClasses('/courses')} cursor-pointer`}
               >
-                  دوراتي
-                {!isAuthenticated && (
-                  <span className="mr-1 text-xs text-primary-dark">(تسجيل الدخول)</span>
-              )}
+                الدورات
               </button>
+              {isAuthenticated && (
+                <Link
+                  to="/enrolled-courses"
+                  className={navLinkClasses('/enrolled-courses')}
+                >
+                  دوراتي
+                </Link>
+              )}
             </div>
           </div>
 
@@ -117,7 +106,7 @@ const Navbar: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Logout button (keeping existing logout button) */}
+                  {/* Logout button */}
                   <button
                     onClick={logout}
                     className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-full hover:from-rose-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow group"
@@ -198,73 +187,48 @@ const Navbar: React.FC = () => {
           <div className="px-2 pt-2 pb-3 space-y-1">
             <Link
               to="/"
-              className={`block px-3 py-2 text-base font-medium ${
-                isCurrentPath('/') 
-                  ? 'bg-primary-light text-primary' 
-                  : 'text-gray-600 hover:bg-primary-light hover:text-primary'
-              } rounded-md`}
+              className={`block ${navLinkClasses('/')}`}
             >
               الرئيسية
             </Link>
             <Link
               to="/about"
-              className={`block px-3 py-2 text-base font-medium ${
-                isCurrentPath('/about') 
-                  ? 'bg-primary-light text-primary' 
-                  : 'text-gray-600 hover:bg-primary-light hover:text-primary'
-              } rounded-md`}
+              className={`block ${navLinkClasses('/about')}`}
             >
               عن المنصة
             </Link>
-            {!isAuthenticated && (
-              <button
-                onClick={scrollToCourses}
-                className="block w-full text-right px-3 py-2 text-base font-medium text-gray-600 hover:bg-primary-light hover:text-primary rounded-md"
-              >
-                الدورات
-              </button>
-            )}
             <button
-              onClick={handleMyCourses}
-              className={`block w-full text-right px-3 py-2 text-base font-medium ${
-                  isCurrentPath('/enrolled-courses') 
-                    ? 'bg-primary-light text-primary' 
-                    : 'text-gray-600 hover:bg-primary-light hover:text-primary'
-                } rounded-md`}
+              onClick={scrollToCourses}
+              className={`block w-full text-right ${navLinkClasses('/courses')}`}
+            >
+              الدورات
+            </button>
+            {isAuthenticated && (
+              <Link
+                to="/enrolled-courses"
+                className={`block ${navLinkClasses('/enrolled-courses')}`}
               >
                 دوراتي
-              {!isAuthenticated && (
-                <span className="mr-1 text-xs text-primary-dark">(تسجيل الدخول)</span>
+              </Link>
             )}
-            </button>
             {isAuthenticated ? (
-              <>
-                <div className="px-3 py-2 text-base font-medium text-gray-600">
-                  مرحباً، {currentUser?.name}
-                </div>
-                <button
-                  onClick={logout}
-                  className="block w-full text-right px-3 py-2 text-base font-medium bg-gradient-to-r from-rose-500 to-red-600 text-white rounded-full hover:from-rose-600 hover:to-red-700 transition-all duration-300 shadow-sm hover:shadow group"
-                >
-                  <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform duration-300" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    تسجيل الخروج
-                  </span>
-                </button>
-              </>
+              <button
+                onClick={logout}
+                className="block w-full text-right px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-full transition-all duration-200"
+              >
+                تسجيل الخروج
+              </button>
             ) : (
               <>
                 <Link
                   to="/login"
-                  className="block px-3 py-2 text-base font-medium text-gray-600 hover:bg-primary-light hover:text-primary rounded-md"
+                  className="block px-4 py-2 text-sm font-medium text-gray-600 hover:bg-primary-light hover:text-primary rounded-full transition-all duration-200"
                 >
                   تسجيل الدخول
                 </Link>
                 <Link
                   to="/register"
-                  className="block px-3 py-2 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-md shadow-sm hover:shadow"
+                  className="block px-4 py-2 text-sm font-medium text-primary hover:bg-primary-light rounded-full transition-all duration-200"
                 >
                   إنشاء حساب
                 </Link>

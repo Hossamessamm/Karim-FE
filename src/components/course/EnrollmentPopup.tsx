@@ -93,11 +93,6 @@ const EnrollmentPopup: React.FC<EnrollmentPopupProps> = ({ isOpen, onClose, cour
     onClose();
   };
 
-  const handleGoToEnrolledCourses = () => {
-    navigate('/enrolled-courses');
-    onClose();
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -215,17 +210,17 @@ const EnrollmentPopup: React.FC<EnrollmentPopupProps> = ({ isOpen, onClose, cour
                   </svg>
                 </div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">تم التسجيل بنجاح!</h2>
-                <p className="text-gray-600">تم تسجيلك في الدورة بنجاح</p>
+                <p className="text-gray-600">يمكنك الآن بدء التعلم</p>
               </div>
               <div className="flex gap-3">
                 <button
                   onClick={handleGoToCourse}
-                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-primary/25"
+                  className="flex-1 py-3 px-4 bg-primary text-white rounded-xl hover:bg-primary-dark transition-all duration-200"
                 >
-                  ابدأ الدورة
+                  بدء الدورة
                 </button>
                 <button
-                  onClick={handleGoToEnrolledCourses}
+                  onClick={() => navigate('/enrolled-courses')}
                   className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200"
                 >
                   عرض دوراتي

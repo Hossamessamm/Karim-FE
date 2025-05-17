@@ -149,6 +149,104 @@ export interface QuizLessonResponse {
   data: QuizQuestion[];
 }
 
+// Global debounce control
+let apiCallsInProgress = false;
+const apiCallQueue = new Set<string>();
+const DEBOUNCE_DELAY = 300; // ms
+
+// Enhanced request deduplication - stronger caching
+const pendingRequests = new Map<string, Promise<any>>();
+const responseCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Reset the API call throttle
+const resetApiThrottle = () => {
+  apiCallsInProgress = false;
+  if (apiCallQueue.size > 0) {
+    const nextCall = Array.from(apiCallQueue)[0];
+    apiCallQueue.delete(nextCall);
+    // Process next call in queue after delay
+    setTimeout(() => {
+      console.log(`Processing queued API call: ${nextCall}`);
+      apiCallsInProgress = false;
+    }, DEBOUNCE_DELAY);
+  }
+};
+
+// Function to get a key for request deduplication
+const getRequestKey = (url: string, params?: any): string => {
+  const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
+  if (!params) return normalizedUrl;
+  
+  // Sort params to ensure consistent keys
+  const sortedParams = Object.keys(params).sort().reduce((acc: Record<string, any>, key) => {
+    acc[key] = params[key];
+    return acc;
+  }, {});
+  
+  return `${normalizedUrl}?${new URLSearchParams(sortedParams as Record<string, string>).toString()}`;
+};
+
+// Enhanced cache handling
+const getCachedResponse = (key: string) => {
+  const cached = responseCache.get(key);
+  if (!cached) return null;
+  
+  const now = Date.now();
+  if (now - cached.timestamp > CACHE_DURATION) {
+    responseCache.delete(key);
+    return null;
+  }
+  
+  console.log(`Cache hit for ${key}, using cached data`);
+  return cached.data;
+};
+
+const setCachedResponse = (key: string, data: any) => {
+  console.log(`Caching response for ${key}`);
+  responseCache.set(key, { data, timestamp: Date.now() });
+};
+
+// Enhanced request execution with deduplication
+const executeRequest = async <T>(
+  key: string,
+  requestFn: () => Promise<T>
+): Promise<T> => {
+  // Check cache first (fast path)
+  const cachedResponse = getCachedResponse(key);
+  if (cachedResponse) {
+    return cachedResponse as T;
+  }
+
+  // Check for existing in-flight request
+  const existingRequest = pendingRequests.get(key);
+  if (existingRequest) {
+    console.log(`Using existing request for ${key}`);
+    return existingRequest as Promise<T>;
+  }
+
+  // Throttle API calls
+  if (apiCallsInProgress) {
+    console.log(`API call throttled, queuing: ${key}`);
+    apiCallQueue.add(key);
+    // Add a small random delay to prevent race conditions
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 20));
+    return executeRequest(key, requestFn);
+  }
+
+  // Set throttle flag
+  apiCallsInProgress = true;
+
+  console.log(`Executing new request: ${key}`);
+  const request = requestFn().finally(() => {
+    pendingRequests.delete(key);
+    setTimeout(resetApiThrottle, DEBOUNCE_DELAY);
+  });
+  
+  pendingRequests.set(key, request);
+  return request;
+};
+
 // Function to get cached auth token
 const getAuthToken = (): string | null => {
   const token = localStorage.getItem('auth_token');
@@ -218,59 +316,11 @@ const formatGrade = (grade: string): string => {
 
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'https://api.ibrahim-magdy.com',
+  baseURL: 'https://api.ibrahim-magdy.com/api',
   headers: {
     'Content-Type': 'application/json',
   }
 });
-
-// Request deduplication
-const pendingRequests = new Map<string, Promise<any>>();
-
-const getRequestKey = (url: string, params?: any): string => {
-  const normalizedUrl = url.startsWith('/') ? url : `/${url}`;
-  if (!params) return normalizedUrl;
-  return `${normalizedUrl}?${new URLSearchParams(params).toString()}`;
-};
-
-const executeRequest = async <T>(
-  key: string,
-  requestFn: () => Promise<T>
-): Promise<T> => {
-  const existingRequest = pendingRequests.get(key);
-  if (existingRequest) {
-    console.log(`Using existing request for ${key}`);
-    return existingRequest as Promise<T>;
-  }
-
-  const request = requestFn().finally(() => {
-    pendingRequests.delete(key);
-  });
-  
-  pendingRequests.set(key, request);
-  return request;
-};
-
-// Cache for successful responses
-const responseCache = new Map<string, { data: any; timestamp: number }>();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-const getCachedResponse = (key: string) => {
-  const cached = responseCache.get(key);
-  if (!cached) return null;
-  
-  const now = Date.now();
-  if (now - cached.timestamp > CACHE_DURATION) {
-    responseCache.delete(key);
-    return null;
-  }
-  
-  return cached.data;
-};
-
-const setCachedResponse = (key: string, data: any) => {
-  responseCache.set(key, { data, timestamp: Date.now() });
-};
 
 // Add request interceptor to include auth token
 api.interceptors.request.use((config) => {
@@ -349,7 +399,7 @@ export const useCourseApi = () => {
     }
   }, []);
 
-  const getCourses = async (
+  const getCourses = useCallback(async (
     grade: string,
     page: number = 1,
     pageSize: number = 10
@@ -437,84 +487,89 @@ export const useCourseApi = () => {
         throw error;
       }
     });
-  };
+  }, []);
 
-  const fetchEnrolledCourses = useCallback(async (
-    pageNumber: number = 1,
-    pageSize: number = 10
-  ) => {
+  const fetchEnrolledCourses = async (pageNumber: number = 1, pageSize: number = 9): Promise<CourseResponse> => {
     setIsLoading(true);
     setError(null);
-
+    
     try {
-      const studentId = getUserId();
-      if (!studentId) {
-        throw new Error('User not authenticated');
-      }
-
       const token = getAuthToken();
-      if (!token) {
-        throw new Error('No auth token available');
+      const studentId = getUserId();
+      
+      if (!token || !studentId) {
+        throw new Error('Authentication required');
       }
 
-      console.log('Fetching enrolled courses:', {
-        studentId,
-        pageNumber,
-        pageSize,
-        hasToken: !!token
-      });
-
-      const params = {
-        studentId,
-        pagenumber: pageNumber,
-        pagesize: pageSize,
-      };
-
-      const response = await makeRequest<CourseListData>(
-        '/Student/Student-Enrolled-Courses',
-        params,
-        () => api.get<ApiResponse<CourseListData>>('/Student/Student-Enrolled-Courses', { params })
+      const response = await axios.get(
+        `${BASE_URL}/Student/Student-Enrolled-Courses`,
+        {
+          params: {
+            studentId,
+            pagenumber: pageNumber,
+            pagesize: pageSize
+          },
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
 
-      console.log('Enrolled courses response:', {
-        success: response.success,
-        totalCount: response.data.totalCount,
-        coursesCount: response.data.courses.length
-      });
-
-      return response;
-    } catch (err: any) {
-      console.error('Error fetching enrolled courses:', err);
-      let errorMessage = 'Failed to fetch enrolled courses';
-      
-      // Check if it's an axios error with response status
-      if (err.response?.status === 404) {
-        errorMessage = 'No enrolled courses found. Please enroll in a course to get started.';
-      } else if (err instanceof Error) {
-        errorMessage = err.message;
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Failed to fetch enrolled courses');
       }
-      
+
+      return response.data;
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch enrolled courses';
       setError(errorMessage);
-      return null;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [makeRequest]);
+  };
 
   const fetchCourseDetails = useCallback(async (courseId: string) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await api.get<CourseDetailsResponse>('/Course/tree', {
-        params: {
-          courseid: courseId
-        },
-      });
-
-      return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch course details');
+      const params = { courseid: courseId };
+      const key = getRequestKey('/Course/tree', params);
+      
+      // Check cache first
+      const cached = getCachedResponse(key);
+      if (cached) {
+        console.log(`Using cached course details for ${key}`);
+        setIsLoading(false);
+        return cached;
+      }
+      
+      const response = await executeRequest<ApiResponse<CourseDetails>>(
+        key,
+        async () => {
+          const apiResponse = await api.get<ApiResponse<CourseDetails>>('/Course/tree', { params });
+          return apiResponse.data;
+        }
+      );
+      
+      // Cache successful response
+      if (response.success) {
+        setCachedResponse(key, response);
+      }
+      
+      return response;
+    } catch (err: any) {
+      console.error('Error fetching course details:', err);
+      let errorMessage = 'Failed to fetch course details';
+      
+      if (err.response?.status === 404) {
+        errorMessage = 'Course details not found.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);
@@ -526,10 +581,41 @@ export const useCourseApi = () => {
     setError(null);
 
     try {
-      const response = await api.get<VideoLessonResponse | QuizLessonResponse>(`/AdminStudent/Details/${lessonId}`);
-      return response.data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch lesson details');
+      const key = getRequestKey(`/AdminStudent/Details/${lessonId}`);
+      
+      // Check cache first
+      const cached = getCachedResponse(key);
+      if (cached) {
+        console.log(`Using cached lesson details for ${key}`);
+        setIsLoading(false);
+        return cached;
+      }
+      
+      const response = await executeRequest<ApiResponse<any>>(
+        key,
+        async () => {
+          const apiResponse = await api.get<ApiResponse<any>>(`/AdminStudent/Details/${lessonId}`);
+          return apiResponse.data;
+        }
+      );
+      
+      // Cache successful response
+      if (response.success) {
+        setCachedResponse(key, response);
+      }
+      
+      return response;
+    } catch (err: any) {
+      console.error('Error fetching lesson details:', err);
+      let errorMessage = 'Failed to fetch lesson details';
+      
+      if (err.response?.status === 404) {
+        errorMessage = 'Lesson details not found.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       return null;
     } finally {
       setIsLoading(false);

@@ -4,7 +4,7 @@ import { Course } from '../../hooks/useCourseApi';
 
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
   const formattedPrice = (course.price ?? 0).toFixed(2);
-
+//
   return (
     <div className="course-card-animate bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100">
       <div className="relative aspect-video w-full overflow-hidden">

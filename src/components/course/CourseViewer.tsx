@@ -132,32 +132,112 @@ const CourseViewer: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleLessonSelect = async (unitIndex: number, lessonIndex: number) => {
-    if (courseDetails) {
-      const unit = courseDetails.units[unitIndex];
-      const lesson = unit.lessons[lessonIndex];
-      setSelectedLesson(lesson);
-      setActiveUnit(unitIndex);
-      setActiveLesson(lessonIndex);
-      setLoading(true);
-      setError('');
+    if (!courseDetails) {
+      console.error('No course details available');
+      return;
+    }
 
-      try {
-        const response = await fetchLessonDetails(lesson.id);
-        if (response?.success) {
-          setLessonDetails(response.data);
-        } else {
-          setError('Failed to load lesson details');
-        }
-      } catch (err) {
-        setError('An error occurred while loading the lesson');
-      } finally {
-        setLoading(false);
+    const unit = courseDetails.units[unitIndex];
+    if (!unit || !unit.lessons || lessonIndex >= unit.lessons.length) {
+      console.error('Invalid unit or lesson index:', { unitIndex, lessonIndex, unit });
+      setError('الدرس غير متوفر');
+      return;
+    }
+
+    const lesson = unit.lessons[lessonIndex];
+    console.log('Selected lesson:', lesson);
+    
+    setSelectedLesson(lesson);
+    setActiveUnit(unitIndex);
+    setActiveLesson(lessonIndex);
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('Fetching lesson details for lesson ID:', lesson.id);
+      const response = await fetchLessonDetails(lesson.id);
+      console.log('Lesson details response:', response);
+      
+      if (response?.success) {
+        setLessonDetails(response.data);
+      } else {
+        console.error('Failed to load lesson details:', response);
+        setError('فشل في تحميل تفاصيل الدرس');
       }
+    } catch (err) {
+      console.error('Error loading lesson:', err);
+      setError('حدث خطأ أثناء تحميل الدرس');
+    } finally {
+      setLoading(false);
+    }
 
-      // Update URL parameters
-      searchParams.set('unit', unitIndex.toString());
-      searchParams.set('lesson', lessonIndex.toString());
-      setSearchParams(searchParams);
+    // Update URL parameters
+    searchParams.set('unit', unitIndex.toString());
+    searchParams.set('lesson', lessonIndex.toString());
+    setSearchParams(searchParams);
+  };
+
+  // Helper function to find and load the first available lesson
+  const findAndLoadFirstLesson = async (courseData: CourseDetails) => {
+    console.log('Finding first lesson in course data:', courseData);
+
+    for (let unitIndex = 0; unitIndex < courseData.units.length; unitIndex++) {
+      const unit = courseData.units[unitIndex];
+      console.log(`Checking unit ${unitIndex}:`, unit);
+
+      if (unit.lessons && unit.lessons.length > 0) {
+        // Found a unit with lessons
+        console.log(`Found lessons in unit ${unitIndex}:`, unit.lessons);
+        
+        // Find first lesson with content
+        for (let lessonIndex = 0; lessonIndex < unit.lessons.length; lessonIndex++) {
+          const lesson = unit.lessons[lessonIndex];
+          console.log(`Checking lesson ${lessonIndex}:`, lesson);
+          
+          if (lesson.type === 'Video' || lesson.type === 'Quiz') {
+            console.log(`Loading lesson ${lessonIndex} from unit ${unitIndex}`);
+            setActiveUnit(unitIndex);
+            setActiveLesson(lessonIndex);
+            setSelectedLesson(lesson);
+            loadLessonDetails(lesson.id);
+            
+            // Update URL parameters
+            searchParams.set('unit', unitIndex.toString());
+            searchParams.set('lesson', lessonIndex.toString());
+            setSearchParams(searchParams);
+            return;
+          }
+        }
+      }
+    }
+    
+    // No lessons found in any unit
+    console.error('No valid lessons found in any unit');
+    setError('لا توجد دروس متاحة في هذه الدورة حالياً');
+  };
+  //
+
+  // Separate function to load lesson details
+  const loadLessonDetails = async (lessonId: number) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      console.log('Fetching lesson details for lesson ID:', lessonId);
+      const response = await fetchLessonDetails(lessonId);
+      console.log('Lesson details response:', response);
+      
+      if (response?.success) {
+        setLessonDetails(response.data);
+      } else {
+        console.error('Failed to load lesson details:', response);
+        setError('فشل في تحميل تفاصيل الدرس');
+      }
+    } catch (err) {
+      console.error('Error loading lesson:', err);
+      setError('حدث خطأ أثناء تحميل الدرس');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -165,32 +245,59 @@ const CourseViewer: React.FC = () => {
   useEffect(() => {
     const loadCourseDetails = async () => {
       if (courseId) {
-        const response = await fetchCourseDetails(courseId);
-        if (response?.success && response.data.units.length > 0) {
-          setCourseDetails(response.data);
-          
-          // Check for URL parameters
-          const unitParam = searchParams.get('unit');
-          const lessonParam = searchParams.get('lesson');
-          
-          if (unitParam && lessonParam) {
-            const unitIndex = parseInt(unitParam);
-            const lessonIndex = parseInt(lessonParam);
+        try {
+          console.log('Loading course details for ID:', courseId);
+          setLoading(true);
+          const response = await fetchCourseDetails(courseId);
+          console.log('Course details response:', response);
+
+          if (response?.success) {
+            setCourseDetails(response.data);
             
-            if (!isNaN(unitIndex) && !isNaN(lessonIndex) && 
-                unitIndex >= 0 && unitIndex < response.data.units.length) {
-              await handleLessonSelect(unitIndex, lessonIndex);
+            // Check for URL parameters
+            const unitParam = searchParams.get('unit');
+            const lessonParam = searchParams.get('lesson');
+            
+            if (unitParam && lessonParam) {
+              const unitIndex = parseInt(unitParam);
+              const lessonIndex = parseInt(lessonParam);
+              
+              console.log('URL parameters found:', { unitIndex, lessonIndex });
+              
+              if (!isNaN(unitIndex) && !isNaN(lessonIndex) && 
+                  unitIndex >= 0 && unitIndex < response.data.units.length &&
+                  lessonIndex >= 0 && 
+                  response.data.units[unitIndex].lessons &&
+                  lessonIndex < response.data.units[unitIndex].lessons.length) {
+                console.log('Loading lesson from URL parameters');
+                const lesson = response.data.units[unitIndex].lessons[lessonIndex];
+                setActiveUnit(unitIndex);
+                setActiveLesson(lessonIndex);
+                setSelectedLesson(lesson);
+                await loadLessonDetails(lesson.id);
+              } else {
+                console.log('Invalid URL parameters, finding first lesson');
+                await findAndLoadFirstLesson(response.data);
+              }
+            } else {
+              console.log('No URL parameters, finding first lesson');
+              await findAndLoadFirstLesson(response.data);
             }
           } else {
-            // Load first lesson by default
-            await handleLessonSelect(0, 0);
+            console.error('Failed to load course details:', response);
+            setError('فشل في تحميل تفاصيل الدورة');
           }
+        } catch (err) {
+          console.error('Error loading course:', err);
+          setError('حدث خطأ أثناء تحميل الدورة');
+        } finally {
+          setLoading(false);
         }
       }
     };
 
     loadCourseDetails();
-  }, [courseId, fetchCourseDetails, handleLessonSelect, searchParams]);
+  }, [courseId]);
 
   useEffect(() => {
     if (courseDetails) {
@@ -210,15 +317,32 @@ const CourseViewer: React.FC = () => {
   };
 
   const handleLessonClick = async (unitIndex: number, lessonIndex: number) => {
+    if (!courseDetails) {
+      console.error('No course details available');
+      return;
+    }
+
+    const unit = courseDetails.units[unitIndex];
+    if (!unit || !unit.lessons || lessonIndex >= unit.lessons.length) {
+      console.error('Invalid unit or lesson index:', { unitIndex, lessonIndex, unit });
+      setError('الدرس غير متوفر');
+      return;
+    }
+
+    const lesson = unit.lessons[lessonIndex];
+    console.log('Selected lesson:', lesson);
+    
+    setSelectedLesson(lesson);
     setActiveUnit(unitIndex);
     setActiveLesson(lessonIndex);
     setIsMenuOpen(false);
-    navigate(`?unit=${unitIndex}&lesson=${lessonIndex}`);
-
-    if (courseDetails) {
-      const lesson = courseDetails.units[unitIndex].lessons[lessonIndex];
-      await handleLessonSelect(unitIndex, lessonIndex);
-    }
+    
+    // Update URL and load lesson details
+    searchParams.set('unit', unitIndex.toString());
+    searchParams.set('lesson', lessonIndex.toString());
+    setSearchParams(searchParams);
+    
+    await loadLessonDetails(lesson.id);
   };
 
   const toggleMenu = () => {

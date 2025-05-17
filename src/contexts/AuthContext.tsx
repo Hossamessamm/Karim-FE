@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = JSON.parse(savedUser);
       
       // Use the enrolled courses endpoint to validate the token
-      const url = new URL('https://api.ibrahim-magdy.com/Student/Student-Enrolled-Courses');
+      const url = new URL('https://api.ibrahim-magdy.com/api/Student/Student-Enrolled-Courses');
       url.searchParams.append('studentId', user.id);
       url.searchParams.append('pagenumber', '1');
       url.searchParams.append('pagesize', '1');
