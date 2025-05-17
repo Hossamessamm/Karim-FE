@@ -12,7 +12,6 @@ const Login: React.FC = () => {
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from || '/';
 
   // Handle verification success state
   useEffect(() => {
@@ -34,8 +33,8 @@ const Login: React.FC = () => {
     try {
       const result = await login(email, password);
       if (result.success) {
-        // Navigate to the saved return URL
-        navigate(from, { replace: true });
+        // Always navigate to home page after successful login
+        navigate('/', { replace: true });
       } else {
         if (result.isUnconfirmedEmail) {
           navigate(`/verify-otp?email=${encodeURIComponent(email)}`);

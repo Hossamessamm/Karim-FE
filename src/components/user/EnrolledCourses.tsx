@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { useCourseApi } from '../../hooks/useCourseApi';
 import { useScrollAnimation } from '../../hooks/useScrollAnimation';
 import { Course } from '../../types/course';
@@ -155,36 +155,60 @@ const CourseGrid = React.memo(({
 // Main Component
 const EnrolledCourses: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { currentUser: user, isAuthenticated } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
   const courseGridRef = useRef<HTMLDivElement | null>(null);
   const { fetchEnrolledCourses, isLoading, error } = useCourseApi();
   const [courses, setCourses] = useState<Course[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const loadingRef = useRef(false);
 
   const setGridRef = useCallback((node: HTMLDivElement | null) => {
     courseGridRef.current = node;
   }, []);
 
-  // Fetch enrolled courses when page changes
-  useEffect(() => {
-    const loadCourses = async () => {
-      if (!user) {
-        navigate('/login', { state: { from: '/enrolled-courses' } });
-        return;
-      }
+  // Memoize the loadCourses function to prevent unnecessary recreations
+  const loadCourses = useCallback(async () => {
+    // Prevent multiple simultaneous calls
+    if (loadingRef.current) {
+      return;
+    }
 
+    if (!isAuthenticated || !user) {
+      navigate('/login', { state: { from: '/enrolled-courses' } });
+      return;
+    }
+
+    try {
+      loadingRef.current = true;
       const response = await fetchEnrolledCourses(currentPage, ITEMS_PER_PAGE);
       if (response?.success) {
         setCourses(response.data.courses);
         setTotalPages(response.data.totalPages);
         setTotalCount(response.data.totalCount);
       }
-    };
+    } finally {
+      loadingRef.current = false;
+    }
+  }, [currentPage, fetchEnrolledCourses, user?.id, isAuthenticated, navigate]);
+
+  // Fetch enrolled courses only when necessary
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: '/enrolled-courses' } });
+      return;
+    }
+
+    console.log('Loading courses effect triggered:', {
+      currentPage,
+      isAuthenticated,
+      userId: user?.id,
+      isLoading: loadingRef.current
+    });
 
     loadCourses();
-  }, [currentPage, fetchEnrolledCourses, user, navigate]);
+  }, [loadCourses, isAuthenticated, navigate]);
 
   // Handle page change with smooth scroll
   const handlePageChange = useCallback((page: number) => {
@@ -195,12 +219,32 @@ const EnrolledCourses: React.FC = () => {
     }, 100);
   }, []);
 
-  if (error) {
+  // Memoize the error component
+  const errorComponent = useMemo(() => {
+    if (!error) return null;
     return (
       <div className="text-center text-red-600 p-4">
         Error loading courses: {error}
       </div>
     );
+  }, [error]);
+
+  // Memoize the empty state component
+  const emptyStateComponent = useMemo(() => (
+    <div className="bg-white rounded-lg p-8 text-center shadow-sm">
+      <h2 className="text-xl font-medium text-gray-700 mb-4">You haven't enrolled in any courses yet</h2>
+      <p className="text-gray-500 mb-6">Browse our courses and start learning today!</p>
+      <Link
+        to="/"
+        className="inline-block bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition-colors"
+      >
+        Browse Courses
+      </Link>
+    </div>
+  ), []);
+
+  if (error) {
+    return errorComponent;
   }
 
   return (
@@ -216,16 +260,7 @@ const EnrolledCourses: React.FC = () => {
       {isLoading ? (
         <LoadingGrid />
       ) : courses.length === 0 ? (
-        <div className="bg-white rounded-lg p-8 text-center shadow-sm">
-          <h2 className="text-xl font-medium text-gray-700 mb-4">You haven't enrolled in any courses yet</h2>
-          <p className="text-gray-500 mb-6">Browse our courses and start learning today!</p>
-          <Link
-            to="/"
-            className="inline-block bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Browse Courses
-          </Link>
-        </div>
+        emptyStateComponent
       ) : (
         <CourseGrid
           courses={courses}
@@ -239,4 +274,4 @@ const EnrolledCourses: React.FC = () => {
   );
 };
 
-export default EnrolledCourses; 
+export default React.memo(EnrolledCourses); 

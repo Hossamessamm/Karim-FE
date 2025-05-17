@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout, currentUser } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isCurrentPath = (path: string) => {
     return location.pathname === path;
@@ -18,6 +19,14 @@ const Navbar: React.FC = () => {
     } else if (location.pathname !== '/') {
       window.location.href = '/#courses-section';
     }
+  };
+
+  const handleMyCourses = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    navigate('/enrolled-courses');
   };
 
   const navLinkClasses = (path: string) => `
@@ -71,11 +80,15 @@ const Navbar: React.FC = () => {
                   الدورات
                 </button>
               )}
-              {isAuthenticated && (
-                <Link to="/enrolled-courses" className={navLinkClasses('/enrolled-courses')}>
+              <button
+                onClick={handleMyCourses}
+                className={`${navLinkClasses('/enrolled-courses')} cursor-pointer`}
+              >
                   دوراتي
-                </Link>
+                {!isAuthenticated && (
+                  <span className="mr-1 text-xs text-primary-dark">(تسجيل الدخول)</span>
               )}
+              </button>
             </div>
           </div>
 
@@ -211,18 +224,19 @@ const Navbar: React.FC = () => {
                 الدورات
               </button>
             )}
-            {isAuthenticated && (
-              <Link
-                to="/enrolled-courses"
-                className={`block px-3 py-2 text-base font-medium ${
+            <button
+              onClick={handleMyCourses}
+              className={`block w-full text-right px-3 py-2 text-base font-medium ${
                   isCurrentPath('/enrolled-courses') 
                     ? 'bg-primary-light text-primary' 
                     : 'text-gray-600 hover:bg-primary-light hover:text-primary'
                 } rounded-md`}
               >
                 دوراتي
-              </Link>
+              {!isAuthenticated && (
+                <span className="mr-1 text-xs text-primary-dark">(تسجيل الدخول)</span>
             )}
+            </button>
             {isAuthenticated ? (
               <>
                 <div className="px-3 py-2 text-base font-medium text-gray-600">

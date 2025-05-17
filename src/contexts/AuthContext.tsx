@@ -15,6 +15,7 @@ interface AuthContextType {
   updateProfile: (user: Partial<User>) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  validateAuthState: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,23 +32,183 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
+interface LoginResponse {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phoneNumber: string;
+    academicYear: string;
+    registrationDate: string;
+  };
+  token: string;
+}
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
+  // Add function to update authentication state
+  const updateAuthState = (authenticated: boolean, user: User | null = null, token: string | null = null) => {
+    console.log('Updating auth state:', { authenticated, hasUser: !!user, hasToken: !!token });
+    
+    setIsAuthenticated(authenticated);
+    setCurrentUser(user);
+    
+    if (authenticated && user && token) {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem('isAuthenticated', 'true');
+    } else {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('isAuthenticated');
+    }
+  };
+
+  // Function to validate current auth state
+  const validateAuthState = async (): Promise<boolean> => {
+    console.log('Validating auth state...');
+    const token = localStorage.getItem('auth_token');
+    const savedUser = localStorage.getItem('currentUser');
+    const savedIsAuthenticated = localStorage.getItem('isAuthenticated');
+    
+    console.log('Current auth state:', {
+      hasToken: !!token,
+      hasUser: !!savedUser,
+      isAuthenticatedInStorage: savedIsAuthenticated === 'true',
+      isAuthenticatedInState: isAuthenticated,
+      hasCurrentUser: !!currentUser
+    });
+
+    if (!token || !savedUser || savedIsAuthenticated !== 'true') {
+      console.log('Missing auth data, clearing auth state');
+      updateAuthState(false);
+      return false;
+    }
+
+    try {
+      // Parse saved user to get ID
+      const user = JSON.parse(savedUser);
+      
+      // Use the enrolled courses endpoint to validate the token
+      const url = new URL('https://api.ibrahim-magdy.com/Student/Student-Enrolled-Courses');
+      url.searchParams.append('studentId', user.id);
+      url.searchParams.append('pagenumber', '1');
+      url.searchParams.append('pagesize', '1');
+
+      // Create a unique key for this validation request
+      const validationKey = `validation_${user.id}_${Date.now()}`;
+      const pendingValidations = new Map<string, Promise<boolean>>();
+
+      // Check for existing validation request
+      const existingValidation = pendingValidations.get(validationKey);
+      if (existingValidation) {
+        console.log('Using existing validation request');
+        return existingValidation;
+      }
+
+      console.log('Making validation request...', {
+        userId: user.id,
+        hasToken: !!token
+      });
+
+      const validationPromise = fetch(url, {
+        method: 'GET',
+        headers: {
+          'accept': '*/*',
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(response => {
+        console.log('Validation response:', {
+          status: response.status,
+          ok: response.ok
+        });
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            // For 404, keep the user logged in but log the error
+            console.log('No enrolled courses found, but keeping user logged in');
+            // Ensure user state is set
+            if (!currentUser || !isAuthenticated) {
+              setCurrentUser(user);
+              setIsAuthenticated(true);
+              localStorage.setItem('isAuthenticated', 'true');
+            }
+            return true;
+          }
+          
+          // For other error statuses (like 401, 403, 500, etc.)
+          console.log('Token validation failed, clearing auth state');
+          updateAuthState(false);
+          return false;
+        }
+
+        // Token is valid, ensure user state is set
+        if (!currentUser || !isAuthenticated) {
+          console.log('Restoring user state after successful validation');
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+          localStorage.setItem('isAuthenticated', 'true');
+        }
+
+        return true;
+      }).catch(error => {
+        console.error('Token validation error:', error);
+        updateAuthState(false);
+        return false;
+      }).finally(() => {
+        pendingValidations.delete(validationKey);
+      });
+
+      pendingValidations.set(validationKey, validationPromise);
+      return validationPromise;
+    } catch (error) {
+      console.error('Token validation error:', error);
+      updateAuthState(false);
+      return false;
+    }
+  };
+  
   // Check for saved user and token on component mount
   useEffect(() => {
     const initializeAuth = async () => {
+      console.log('Starting auth initialization...');
+      setIsLoading(true);
       try {
         const savedUser = localStorage.getItem('currentUser');
         const token = localStorage.getItem('auth_token');
-        if (savedUser && token) {
-          setCurrentUser(JSON.parse(savedUser));
+        const savedIsAuthenticated = localStorage.getItem('isAuthenticated');
+        
+        console.log('Saved auth data:', { 
+          hasUser: !!savedUser, 
+          hasToken: !!token,
+          isAuthenticated: !!savedIsAuthenticated
+        });
+        
+        if (savedUser && token && savedIsAuthenticated === 'true') {
+          const user = JSON.parse(savedUser);
+          
+          // Set initial state based on saved data
+          setCurrentUser(user);
           setIsAuthenticated(true);
+          
+          // Validate the token with the backend
+          const isValid = await validateAuthState();
+          if (!isValid) {
+            console.log('Initial token validation failed');
+            updateAuthState(false);
+          } else {
+            console.log('Initial token validation successful');
+          }
+        } else {
+          console.log('No saved auth data found');
+          updateAuthState(false);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('Error during auth initialization:', error);
+        updateAuthState(false);
       } finally {
         setIsLoading(false);
       }
@@ -56,33 +217,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Debug effect to log state changes
+  useEffect(() => {
+    console.log('Auth state changed:', {
+      isAuthenticated,
+      hasUser: !!currentUser,
+      isLoading,
+      hasToken: !!localStorage.getItem('auth_token')
+    });
+  }, [isAuthenticated, currentUser, isLoading]);
+
   const login = async (email: string, password: string) => {
+    console.log('Starting login process...');
     setIsLoading(true);
     try {
       const result = await authService.login(email, password);
+      console.log('Login result:', result);
       
       if (result.success && result.data) {
-        // Extract user data from the response
-        const userData = result.data.user;
-        const token = result.data.token;
+        const { user, token } = result.data as LoginResponse;
 
-        const user: User = {
-          id: userData.id,
-          name: userData.name,
-          email: userData.email,
-          password: '', // We don't store the password
-          grade: userData.academicYear,
+        const userData: User = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          password: '',
+          grade: user.academicYear,
           enrolledCourses: [],
-          phoneNumber: userData.phoneNumber
+          phoneNumber: user.phoneNumber
         };
         
-        // Save auth token and user ID
-        localStorage.setItem('auth_token', token);
-        localStorage.setItem('user_id', userData.id);
-        localStorage.setItem('currentUser', JSON.stringify(user));
+        updateAuthState(true, userData, token);
+        localStorage.setItem('user_id', user.id);
         
-        setCurrentUser(user);
-        setIsAuthenticated(true);
+        console.log('Login successful, auth state updated');
         return { success: true };
       }
       return result;
@@ -142,27 +310,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await authService.logout();
       if (result.success) {
         // Clear all auth data after successful API logout
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('auth_token');
+        updateAuthState(false);
         localStorage.removeItem('user_id');
       } else {
         console.error('Logout failed:', result.error);
         // Still clear local state even if API call fails
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-        localStorage.removeItem('currentUser');
-        localStorage.removeItem('auth_token');
+        updateAuthState(false);
         localStorage.removeItem('user_id');
       }
     } catch (error) {
       console.error('Logout error:', error);
       // Clear all auth data even if there's an error
-      setCurrentUser(null);
-      setIsAuthenticated(false);
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('auth_token');
+      updateAuthState(false);
       localStorage.removeItem('user_id');
     }
   };
@@ -190,6 +349,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     updateProfile,
     isAuthenticated,
     isLoading,
+    validateAuthState,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
