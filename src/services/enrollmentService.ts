@@ -1,17 +1,25 @@
 import axios from 'axios';
-import { BASE_URL } from '../apiConfig';
+
+const API_BASE_URL = 'https://api.mromarelkholy.com/api';
 
 export const checkEnrollment = async (studentId: string, courseId: string): Promise<boolean> => {
   try {
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+      console.error('No authentication token found');
+      return false;
+    }
+
     const response = await axios.get(
-      `${BASE_URL}/AdminStudent/IsEnrolled?studentId=${studentId}&courseId=${courseId}`,
+      `${API_BASE_URL}/AdminStudent/IsEnrolled?studentId=${studentId}&courseId=${courseId}`,
       {
         headers: {
-          'accept': '*/*'
+          'accept': '*/*',
+          'Authorization': `Bearer ${token}`
         }
       }
     );
-    return response.data;
+    return response.data as boolean;
   } catch (error) {
     console.error('Error checking enrollment:', error);
     return false;
