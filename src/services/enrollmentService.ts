@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://api.mromarelkholy.com/api';
+const API_BASE_URL = 'https://api.ibrahim-magdy.com/api';
 
 export const checkEnrollment = async (studentId: string, courseId: string): Promise<boolean> => {
   try {
