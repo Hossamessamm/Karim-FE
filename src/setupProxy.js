@@ -1,11 +1,10 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const { BASE_URL } = require('./apiConfig');
 
 module.exports = function(app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: BASE_URL,
+      target: 'https://api.ibrahim-magdy.com',
       changeOrigin: true,
       // Don't rewrite the path since the API actually expects /api in the URL
       // pathRewrite: { '^/api': '' },

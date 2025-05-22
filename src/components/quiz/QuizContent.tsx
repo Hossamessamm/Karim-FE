@@ -4,12 +4,15 @@ import { QuizQuestion } from '../../hooks/useCourseApi';
 interface QuizContentProps {
   questions: QuizQuestion[];
   onComplete: () => void;
+  hasNextLesson?: boolean;
+  onMoveToNextLesson?: () => void;
 }
 
-export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete }) => {
+export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete, hasNextLesson = false, onMoveToNextLesson }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [showAnswers, setShowAnswers] = useState(false);
 
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswers(prev => {
@@ -29,6 +32,13 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete 
 
   const handleComplete = () => {
     onComplete();
+    if (hasNextLesson && onMoveToNextLesson) {
+      onMoveToNextLesson();
+    }
+  };
+
+  const handleViewAnswers = () => {
+    setShowAnswers(true);
   };
 
   const calculateScore = () => {
@@ -51,6 +61,16 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete 
 
   const question = questions[currentQuestion];
   const score = showResults ? calculateScore() : null;
+
+  const getAnswerStatusClass = (questionIndex: number, answerIndex: number) => {
+    const isSelected = selectedAnswers[questionIndex] === answerIndex;
+    const isCorrect = questions[questionIndex].answers[answerIndex].isCorrect;
+    
+    if (!isSelected && !isCorrect) return 'border-gray-200 text-gray-700';
+    if (isSelected && isCorrect) return 'border-green-500 bg-green-50 text-green-700';
+    if (isSelected && !isCorrect) return 'border-red-500 bg-red-50 text-red-700';
+    if (!isSelected && isCorrect) return 'border-green-500 bg-green-50 text-green-700';
+  };
 
   return (
     <div className="quiz-content" dir="rtl">
@@ -122,12 +142,50 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete 
                 </div>
               </div>
             )}
+
+            {!showAnswers ? (
+              <button
+                onClick={handleViewAnswers}
+                className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors mb-4 w-full max-w-sm mx-auto block"
+              >
+                عرض الإجابات الصحيحة
+              </button>
+            ) : (
+              <div className="max-w-2xl mx-auto mt-8 space-y-6">
+                <h4 className="text-xl font-semibold text-gray-900 mb-4">الإجابات الصحيحة</h4>
+                {questions.map((q, qIndex) => (
+                  <div key={qIndex} className="bg-white rounded-xl p-6 shadow-sm">
+                    <p className="text-lg text-gray-900 mb-4 font-medium">{q.text}</p>
+                    <div className="space-y-3">
+                      {q.answers.map((answer, aIndex) => (
+                        <div
+                          key={aIndex}
+                          className={`w-full text-right p-4 rounded-lg border transition-all flex items-center justify-between ${getAnswerStatusClass(qIndex, aIndex)}`}
+                        >
+                          <span>{answer.text}</span>
+                          {answer.isCorrect && (
+                            <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                          {selectedAnswers[qIndex] === aIndex && !answer.isCorrect && (
+                            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={handleComplete}
             className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
           >
-            إنهاء وعودة للدرس
+            {hasNextLesson ? 'إنهاء والانتقال للدرس التالي' : 'إنهاء وعودة للدرس'}
           </button>
         </div>
       )}

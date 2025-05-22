@@ -10,6 +10,26 @@ import {
 import ReactPlayer from 'react-player';
 import { QuizContent } from '../quiz/QuizContent';
 
+// Add these color variables at the top of the file
+const colors = {
+  primary: '#2563EB', // Blue
+  secondary: '#4F46E5', // Indigo
+  accent: '#0EA5E9', // Sky blue
+  success: '#22C55E', // Green
+  background: '#F8FAFC', // Light gray
+  text: {
+    primary: '#1E293B', // Slate 800
+    secondary: '#64748B', // Slate 500
+    light: '#94A3B8' // Slate 400
+  }
+};
+
+// Simplified screen orientation type
+interface ScreenOrientationAPI {
+  lock(orientation: 'landscape' | 'portrait'): Promise<void>;
+  unlock(): void;
+}
+
 // Add type for ReactPlayer instance
 type ReactPlayerType = ReactPlayer & {
   seekTo: (amount: number) => void;
@@ -110,12 +130,27 @@ const BunnyVideoPlayer: React.FC<BunnyVideoPlayerProps> = ({ url, playing, onPro
   );
 };
 
+// Add this CSS class for fullscreen video container
+const videoContainerStyles = {
+  fullscreen: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#000',
+  }
+};
+
+// Add this helper function at the top of the file
+const isArabicText = (text: string): boolean => {
+  const arabicPattern = /[\u0600-\u06FF]/;
+  return arabicPattern.test(text);
+};
+
 const CourseViewer: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { fetchCourseDetails, isLoading, fetchLessonDetails } = useCourseApi();
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
   const [activeUnit, setActiveUnit] = useState<number | null>(null);
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [collapsedUnits, setCollapsedUnits] = useState<string[]>([]);
@@ -130,6 +165,52 @@ const CourseViewer: React.FC = () => {
   const [lessonDetails, setLessonDetails] = useState<VideoLessonResponse['data'] | QuizLessonResponse['data'] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const videoContainerRef = useRef<HTMLDivElement>(null);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Function to show controls and set up auto-hide timer
+  const showControlsTemporarily = () => {
+    setControlsVisible(true);
+    
+    // Clear any existing timer
+    if (controlsTimerRef.current) {
+      clearTimeout(controlsTimerRef.current);
+    }
+    
+    // Set up new timer to hide controls after 5 seconds
+    controlsTimerRef.current = setTimeout(() => {
+      // Only hide controls if video is playing
+      if (playing) {
+        setControlsVisible(false);
+      }
+    }, 5000);
+  };
+
+  // Reset controls visibility on play/pause
+  useEffect(() => {
+    if (playing) {
+      showControlsTemporarily();
+    } else {
+      setControlsVisible(true);
+      if (controlsTimerRef.current) {
+        clearTimeout(controlsTimerRef.current);
+      }
+    }
+  }, [playing]);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (controlsTimerRef.current) {
+        clearTimeout(controlsTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleLessonSelect = async (unitIndex: number, lessonIndex: number) => {
     if (!courseDetails) {
@@ -421,6 +502,100 @@ const CourseViewer: React.FC = () => {
     return url.includes('iframe.mediadelivery.net');
   };
 
+  // Update the handleFullscreen function
+  const handleFullscreen = async () => {
+    if (!videoContainerRef.current) return;
+
+    try {
+      if (!document.fullscreenElement) {
+        // Enter fullscreen
+        if (videoContainerRef.current.requestFullscreen) {
+          await videoContainerRef.current.requestFullscreen();
+        } else if ((videoContainerRef.current as any).webkitRequestFullscreen) {
+          await (videoContainerRef.current as any).webkitRequestFullscreen();
+        }
+        
+        setIsFullscreen(true);
+
+        // Check if it's a mobile device
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
+        if (isMobile) {
+          // Force landscape orientation
+          if ('orientation' in window.screen && 'lock' in window.screen.orientation) {
+            try {
+              await (window.screen.orientation as any).lock('landscape');
+              setIsLandscape(true);
+            } catch (error) {
+              console.log('Failed to lock orientation:', error);
+            }
+          }
+        }
+      } else {
+        // Exit fullscreen
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+        
+        setIsFullscreen(false);
+
+        // Release orientation lock
+        if ('orientation' in window.screen && 'unlock' in window.screen.orientation) {
+          try {
+            (window.screen.orientation as any).unlock();
+            setIsLandscape(false);
+          } catch (error) {
+            console.log('Failed to unlock orientation:', error);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Fullscreen error:', error);
+    }
+  };
+
+  // Add fullscreen change event listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      if (!document.fullscreenElement) {
+        setIsLandscape(false);
+      }
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
+  // Handle volume change
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+    if (playerRef.current) {
+      (playerRef.current as any).player.player.setVolume(newVolume * 100);
+    }
+  };
+
+  // Handle mute toggle
+  const handleMuteToggle = () => {
+    setIsMuted(!isMuted);
+    if (playerRef.current) {
+      if (!isMuted) {
+        (playerRef.current as any).player.player.setVolume(0);
+      } else {
+        (playerRef.current as any).player.player.setVolume(volume * 100);
+      }
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -460,140 +635,193 @@ const CourseViewer: React.FC = () => {
   const totalLessons = courseDetails.units.reduce((total, unit) => total + unit.lessons.length, 0);
   const currentLessonNumber = courseDetails.units.slice(0, activeUnit).reduce((total, unit) => total + unit.lessons.length, 0) + activeLesson + 1;
 
-  const goToNextLesson = () => {
+  const goToNextLesson = async () => {
     if (activeLesson < currentUnit.lessons.length - 1) {
-      const nextLesson = activeLesson + 1;
-      setActiveLesson(nextLesson);
-      navigate(`?unit=${activeUnit}&lesson=${nextLesson}`);
+      // Next lesson in same unit
+      const nextLessonIndex = activeLesson + 1;
+      await handleLessonSelect(activeUnit, nextLessonIndex);
     } else if (activeUnit < courseDetails.units.length - 1) {
-      const nextUnit = activeUnit + 1;
-      setActiveUnit(nextUnit);
-      setActiveLesson(0);
-      navigate(`?unit=${nextUnit}&lesson=0`);
+      // First lesson of next unit
+      const nextUnitIndex = activeUnit + 1;
+      await handleLessonSelect(nextUnitIndex, 0);
     }
   };
 
   const hasNextLesson = activeLesson < currentUnit.lessons.length - 1 || activeUnit < courseDetails.units.length - 1;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100" dir="rtl">
+    <div className="min-h-screen bg-slate-50">
       {/* Top Navigation Bar */}
-      <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200 fixed top-0 right-0 left-0 z-50">
-        <div className="h-16 flex items-center px-4 lg:px-6 max-w-[1920px] mx-auto">
-          <button 
-            onClick={toggleMenu}
-            className="p-2 rounded-xl hover:bg-gray-100/80 transition-colors"
-            aria-label={isMenuOpen ? 'إغلاق القائمة' : 'فتح القائمة'}
-          >
-            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div className="mr-4 flex-1">
-            <h1 className="text-lg font-semibold text-gray-900">{courseDetails.courseName}</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+      <div className="bg-white shadow-sm border-b border-slate-200 fixed top-0 left-0 right-0 z-50">
+        <div className="h-16 flex items-center justify-between px-4 lg:px-6 max-w-[1920px] mx-auto">
+          <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <button 
+              onClick={() => navigate('/enrolled-courses')}
+              className="p-2 rounded-xl hover:bg-slate-100 transition-colors flex items-center gap-2 text-slate-700"
+              aria-label="Back to Courses"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </button>
+
+            {/* Menu Button */}
+            <button 
+              onClick={toggleMenu}
+              className="p-2 rounded-xl hover:bg-slate-100 transition-colors"
+              aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
+            >
+              <svg className="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Course Title and Progress */}
+          <div className="flex-1 mx-6 hidden sm:block">
+            <h1 className="text-lg font-semibold text-slate-900 truncate">
+              {courseDetails?.courseName}
+            </h1>
+            <div className="flex items-center gap-2 text-sm text-slate-600">
               <span className="flex items-center gap-1">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                الدرس {currentLessonNumber} من {totalLessons}
+                {`${currentLessonNumber} / ${totalLessons}`}
               </span>
-              <span>•</span>
-              <span>اكتمل {calculateProgress().toFixed(0)}%</span>
+              <div className="h-4 w-px bg-slate-200"></div>
+              <span className="text-blue-600 font-medium">{calculateProgress().toFixed(0)}% Complete</span>
             </div>
-            {/* Course Progress Bar */}
-            <div className="absolute bottom-0 right-0 left-0 h-1 bg-gray-200">
-              <div 
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${calculateProgress()}%` }}
-              />
-            </div>
+          </div>
+
+          {/* Mobile Course Title */}
+          <div className="flex-1 mx-6 sm:hidden">
+            <h1 className="text-base font-semibold text-slate-900 truncate">
+              {courseDetails?.courseName}
+            </h1>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100">
+            <div 
+              className="h-full bg-blue-500 transition-all duration-300 ease-in-out"
+              style={{ width: `${calculateProgress()}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Main Layout */}
-      <div className="pt-16 min-h-screen relative flex">
-        {/* Sidebar */}
+      <div className="pt-16 min-h-screen flex">
+        {/* Sidebar - Make it a modal on mobile */}
         <aside 
-          className={`fixed inset-y-0 right-0 z-40 w-80 bg-white/80 backdrop-blur-lg transform border-l border-gray-200
-            ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'} 
+          className={`fixed inset-y-0 left-0 z-40 w-full sm:w-80 bg-white shadow-lg transform
+            ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
             transition-all duration-300 ease-in-out`}
           style={{ top: '4rem' }}
         >
+          {/* Add close button for mobile */}
+          <button 
+            onClick={toggleMenu}
+            className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 sm:hidden"
+          >
+            <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          {/* Rest of the sidebar content */}
           <div className="h-full flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+            {/* Course Content Header */}
+            <div className="p-6 border-b border-slate-100">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/20 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} 
+                      d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">محتوى الدورة</h2>
-                  <p className="text-sm text-gray-600">{courseDetails.units.length} وحدات • {totalLessons} دروس</p>
+                  <h2 className="text-lg font-semibold text-slate-900">Course Content</h2>
+                  <p className="text-sm text-slate-500">{`${courseDetails?.units.length} Units • ${totalLessons} Lessons`}</p>
                 </div>
               </div>
             </div>
             
+            {/* Course Units List */}
             <div className="overflow-y-auto flex-1 py-4">
-              {courseDetails.units.map((unit, unitIndex) => (
-                <div key={unit.id} className="mb-2 last:mb-0">
-                  <div 
-                    className="px-6 py-3 hover:bg-gray-50/80 cursor-pointer transition-colors rounded-lg mx-2"
+              {courseDetails?.units.map((unit, unitIndex) => (
+                <div key={unit.id} className="mb-4">
+                  <button
+                    className="w-full px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors"
                     onClick={() => toggleUnit(unit.id.toString())}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center">
-                          <span className="text-primary text-sm font-medium">{unitIndex + 1}</span>
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/20 flex items-center justify-center">
+                      <span className="text-blue-700 text-sm font-medium">{unitIndex + 1}</span>
                         </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{unit.unitName}</h3>
-                          <p className="text-sm text-gray-600">{unit.lessons.length} دروس</p>
-                        </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="font-medium text-slate-900">{unit.unitName}</h3>
+                      <p className="text-sm text-slate-500">{`${unit.lessons.length} Lessons`}</p>
                       </div>
                       <svg 
-                        className={`w-5 h-5 text-gray-400 transform transition-transform duration-200 ${
-                          collapsedUnits.includes(unit.id.toString()) ? 'rotate-180' : ''
-                        }`} 
+                      className={`w-5 h-5 text-slate-400 transition-transform ${collapsedUnits.includes(unit.id.toString()) ? '' : 'rotate-180'}`}
                         fill="none" 
                         stroke="currentColor" 
                         viewBox="0 0 24 24"
                       >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                    </div>
-                  </div>
+                  </button>
                   
-                  <div className={`space-y-1 mt-1 ${
-                    collapsedUnits.includes(unit.id.toString()) ? 'hidden' : 'block'
-                  }`}>
+                  <div className={`space-y-1 mt-1 ${collapsedUnits.includes(unit.id.toString()) ? 'hidden' : ''}`}>
                     {unit.lessons.map((lesson, lessonIndex) => (
-                      <div 
+                      <button
                         key={lesson.id}
-                        className={`mx-4 px-4 py-3 cursor-pointer rounded-lg transition-all duration-200
+                        className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
                           ${activeUnit === unitIndex && activeLesson === lessonIndex 
-                            ? 'bg-primary/10 text-primary' 
-                            : 'hover:bg-gray-50/80'
-                          }`}
+                            ? 'bg-blue-50 text-blue-700' 
+                            : 'hover:bg-slate-50 text-slate-700'}`}
                         onClick={() => handleLessonClick(unitIndex, lessonIndex)}
                       >
-                        <div className="flex items-center gap-3 pr-11">
-                          <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-gradient-to-br from-primary/10 to-primary/20 flex items-center justify-center">
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center
+                          ${activeUnit === unitIndex && activeLesson === lessonIndex 
+                            ? 'bg-blue-100' 
+                            : 'bg-slate-100'}`}
+                        >
                             {completedLessons.includes(lesson.id.toString()) ? (
-                              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                               </svg>
+                          ) : lesson.type === 'Video' ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            </svg>
                             ) : (
-                              <span className="text-primary text-xs font-medium">{lessonIndex + 1}</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
                             )}
                           </div>
-                          <div>
-                            <h4 className="font-medium line-clamp-1">{lesson.lessonName}</h4>
+                        <div className="flex-1 text-left">
+                          <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className={activeUnit === unitIndex && activeLesson === lessonIndex 
+                              ? 'text-blue-600' 
+                              : 'text-slate-500'}>
+                              {lesson.type === 'Video' ? 'Video Lesson' : 'Quiz'}
+                            </span>
+                            {completedLessons.includes(lesson.id.toString()) && (
+                              <>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-green-600">Completed</span>
+                              </>
+                            )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -602,21 +830,36 @@ const CourseViewer: React.FC = () => {
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className={`flex-1 transition-all duration-300 ${isMenuOpen ? 'mr-80' : 'mr-0'}`}>
-          <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Main Content - Adjust margin for mobile */}
+        <main className={`flex-1 transition-all duration-300 ${isMenuOpen ? 'sm:ml-80' : 'ml-0'}`}>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
               </div>
             ) : error ? (
-              <div className="text-center text-red-600 p-4">{error}</div>
+              <div className="text-center p-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 text-red-600 mb-4">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{error}</h3>
+                <p className="text-slate-500">Please try again or contact support if the problem persists.</p>
+              </div>
             ) : selectedLesson && lessonDetails ? (
-              <>
+              <div className="space-y-6">
                 {selectedLesson.type === 'Video' && isVideoLessonResponse(lessonDetails) && (
-                  <div className="space-y-4">
-                    <div className="video-container relative">
-                      <div className="aspect-video bg-black rounded-xl overflow-hidden">
+                  <>
+                    <div 
+                      ref={videoContainerRef}
+                      className={`video-container relative rounded-2xl overflow-hidden shadow-lg
+                        ${isFullscreen ? 'fixed inset-0 z-50 bg-black' : ''}`}
+                      onMouseMove={showControlsTemporarily}
+                      onClick={showControlsTemporarily}
+                    >
+                      <div className={`${isFullscreen ? 'h-full' : 'aspect-video'} bg-slate-900`}>
                         {isBunnyVideo(lessonDetails.videoUrl) ? (
                           <BunnyVideoPlayer
                             url={lessonDetails.videoUrl}
@@ -635,52 +878,51 @@ const CourseViewer: React.FC = () => {
                               controls={false}
                               onProgress={handleProgress}
                               onDuration={handleDuration}
-                              config={{
-                                youtube: {
-                                  playerVars: {
-                                    showinfo: 0,
-                                    modestbranding: 1,
-                                    rel: 0,
-                                    controls: 0,
-                                    disablekb: 1,
-                                    fs: 0,
-                                    iv_load_policy: 3
-                                  }
-                                }
-                              }}
                             />
                             
-                            {/* Custom Controls Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent">
-                              {/* Click handler for play/pause */}
+                            {/* Custom Video Controls */}
+                            <div 
+                              className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${
+                                controlsVisible ? 'opacity-100' : 'opacity-0'
+                              }`}
+                            >
                               <div 
                                 className="absolute inset-0 z-10 cursor-pointer"
-                                onClick={handlePlayPause}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePlayPause();
+                                  showControlsTemporarily();
+                                }}
                               />
                               
-                              {/* Controls Bar */}
-                              <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                                {/* Progress Bar */}
+                              <div className={`absolute bottom-0 left-0 right-0 p-4 z-20 transition-opacity duration-300 ${
+                                controlsVisible ? 'opacity-100' : 'opacity-0'
+                              }`}>
                                 <div 
-                                  className="w-full h-1 bg-gray-600/60 rounded-full mb-4 cursor-pointer relative group"
-                                  onClick={handleSeek}
+                                  className="relative w-full h-1.5 bg-white/20 rounded-full mb-4 cursor-pointer group"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSeek(e);
+                                    showControlsTemporarily();
+                                  }}
                                 >
                                   <div 
-                                    className="absolute h-full bg-primary rounded-full"
+                                    className="absolute left-0 top-0 h-full bg-blue-500 rounded-full transition-all duration-150 group-hover:bg-blue-400"
                                     style={{ width: `${progress}%` }}
                                   />
+                                  {/* Add hover effect preview dot */}
                                   <div 
-                                    className="absolute h-3 w-3 bg-primary rounded-full -top-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                    style={{ left: `${progress}%`, transform: 'translateX(-50%)' }}
+                                    className="absolute top-1/2 -translate-y-1/2 h-3 w-3 bg-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                    style={{ left: `${progress}%`, transform: `translate(-50%, -50%)` }}
                                   />
                                 </div>
-                                
-                                {/* Bottom Controls */}
+                              
+                                {/* Controls Bar */}
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-4">
                                     <button
                                       onClick={handlePlayPause}
-                                      className="text-white hover:text-primary transition-colors"
+                                      className="text-white hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black rounded-lg"
                                     >
                                       {playing ? (
                                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -693,23 +935,67 @@ const CourseViewer: React.FC = () => {
                                         </svg>
                                       )}
                                     </button>
-                                    <div className="text-white text-sm font-medium">
-                                      {formatTime(duration * progress / 100)} / {formatTime(duration)}
+
+                                    <div className="flex items-center gap-2 group relative">
+                                      <button
+                                        onClick={handleMuteToggle}
+                                        className="text-white hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black rounded-lg"
+                                      >
+                                        {isMuted || volume === 0 ? (
+                                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+                                          </svg>
+                                        ) : (
+                                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 11.646a2 2 0 010 2.828m-4.95-7.778l4.95 4.95m0 0l4.95 4.95" />
+                                          </svg>
+                                        )}
+                                      </button>
+                                      <input
+                                        type="range"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={volume}
+                                        onChange={handleVolumeChange}
+                                        className="w-0 group-hover:w-20 transition-all duration-200 opacity-0 group-hover:opacity-100 accent-blue-500"
+                                      />
                                     </div>
+
+                                    <span className="text-white text-sm font-medium">
+                                      {formatTime(duration * progress / 100)} / {formatTime(duration)}
+                                    </span>
                                   </div>
                                   
-                                  {/* Complete Button */}
+                                  <div className="flex items-center gap-4">
+                                    <button
+                                      onClick={handleFullscreen}
+                                      className="text-white hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black rounded-lg"
+                                    >
+                                      {isFullscreen ? (
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9h6v6H9z" />
+                                        </svg>
+                                      ) : (
+                                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                        </svg>
+                                      )}
+                                    </button>
+
                                   {showCompleteButton && !completedLessons.includes(selectedLesson.id.toString()) && (
                                     <button
                                       onClick={handleLessonComplete}
-                                      className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                                      className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black"
                                     >
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                       </svg>
-                                      {hasNextLesson ? 'إكمال ومتابعة' : 'إكمال الدرس'}
+                                        {hasNextLesson ? 'Complete & Continue' : 'Complete Lesson'}
                                     </button>
                                   )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -718,64 +1004,67 @@ const CourseViewer: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Attachment Section */}
+                    {/* Make attachments section responsive */}
                     {lessonDetails.attachmentUrl && lessonDetails.attachmentTitle && (
-                      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/10 to-blue-600/20 flex items-center justify-center">
+                              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                               </svg>
                             </div>
                             <div>
-                              <h3 className="text-gray-900 font-medium">مرفقات الدرس</h3>
-                              <p className="text-gray-600 text-sm">{lessonDetails.attachmentTitle}</p>
+                              <h3 className="text-lg font-semibold text-slate-900">Course Materials</h3>
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-600 text-sm">{lessonDetails.attachmentTitle}</span>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  {lessonDetails.attachmentTitle.split('.').pop()?.toUpperCase()}
+                                </span>
+                              </div>
                             </div>
                           </div>
                           <a
                             href={lessonDetails.attachmentUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-all duration-200"
                           >
-                            <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                             </svg>
-                            تحميل المرفق
+                            Download
                           </a>
                         </div>
                       </div>
                     )}
-
-                    {/* Lesson completion button for Bunny videos */}
-                    {isBunnyVideo(lessonDetails.videoUrl) && showCompleteButton && !completedLessons.includes(selectedLesson.id.toString()) && (
-                      <div className="flex justify-end">
-                        <button
-                          onClick={handleLessonComplete}
-                          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          {hasNextLesson ? 'إكمال ومتابعة' : 'إكمال الدرس'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                  </>
                 )}
                 
                 {selectedLesson.type === 'Quiz' && Array.isArray(lessonDetails) && (
-                  <QuizContent
-                    questions={lessonDetails}
-                    onComplete={handleLessonComplete}
-                  />
+                  <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-lg">
+                    <QuizContent
+                      questions={lessonDetails}
+                      onComplete={handleLessonComplete}
+                      hasNextLesson={hasNextLesson}
+                      onMoveToNextLesson={goToNextLesson}
+                    />
+                  </div>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
         </main>
       </div>
+
+      {/* Add overlay for mobile menu */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-30 sm:hidden"
+          onClick={toggleMenu}
+        />
+      )}
     </div>
   );
 };

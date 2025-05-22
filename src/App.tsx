@@ -5,21 +5,23 @@ import { CourseProvider } from './contexts/CourseContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import MainLayout from './components/layout/MainLayout';
 
 // Pages
 import Home from './pages/Home';
 import About from './pages/About';
+import ForgotPassword from './pages/ForgotPassword';
 
 // Components
+import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ResetPassword from './components/auth/ResetPassword';
 import OtpVerification from './components/auth/OtpVerification';
 import Profile from './components/user/Profile';
+import EnrolledCourses from './components/user/EnrolledCourses';
 import CourseDetail from './components/course/CourseDetail';
 import CourseViewer from './components/course/CourseViewer';
-import EnrolledCourses from './components/user/EnrolledCourses';
+import RefreshTokenTest from './components/test/RefreshTokenTest';
 
 function App() {
   return (
@@ -28,34 +30,44 @@ function App() {
         <ThemeProvider>
           <AuthProvider>
             <CourseProvider>
-              <Routes>
-                <Route element={<MainLayout />}>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route path="/verify-otp" element={<OtpVerification />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  
-                  {/* Protected Routes */}
-                  <Route path="/profile" element={
-                    <ProtectedRoute>
-                      <Profile />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/enrolled-courses" element={
-                    <ProtectedRoute>
-                      <EnrolledCourses />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/courses/:id" element={<CourseDetail />} />
-                  <Route path="/course-player/:courseId" element={
-                    <ProtectedRoute>
-                      <CourseViewer />
-                    </ProtectedRoute>
-                  } />
-                </Route>
-              </Routes>
+              <div className="min-h-screen bg-slate-50">
+                <Navbar />
+                <main className="pb-12">
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/verify-otp" element={<OtpVerification />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    
+                    {/* Protected Routes */}
+                    <Route path="/profile" element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/enrolled-courses" element={
+                      <ProtectedRoute>
+                        <EnrolledCourses />
+                      </ProtectedRoute>
+                    } />
+                    <Route path="/courses/:id" element={<CourseDetail />} />
+                    <Route path="/course-player/:courseId" element={
+                      <ProtectedRoute>
+                        <CourseViewer />
+                      </ProtectedRoute>
+                    } />
+                    {/* Test Route */}
+                    <Route path="/test-refresh-token" element={
+                      <ProtectedRoute>
+                        <RefreshTokenTest />
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
+                </main>
+              </div>
             </CourseProvider>
           </AuthProvider>
         </ThemeProvider>

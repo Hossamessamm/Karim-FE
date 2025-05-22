@@ -11,7 +11,8 @@ interface AuthContextType {
   }>;
   register: (name: string, email: string, password: string, confirmPassword: string, phoneNumber: string, grade: string) => Promise<{success: boolean, error?: string}>;
   logout: () => Promise<void>;
-  resetPassword: (email: string) => boolean;
+  resetPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+  resetPasswordWithOtp: (email: string, otp: string, newPassword: string, confirmPassword: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   updateProfile: (user: Partial<User>) => void;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = JSON.parse(savedUser);
       
       // Use the enrolled courses endpoint to validate the token
-      const url = new URL('https://api.ibrahim-magdy.com/api/Student/Student-Enrolled-Courses');
+      const url = new URL('https://api.mromarelkholy.com/api/Student/Student-Enrolled-Courses');
       url.searchParams.append('studentId', user.id);
       url.searchParams.append('pagenumber', '1');
       url.searchParams.append('pagesize', '1');
@@ -326,10 +327,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const resetPassword = (email: string): boolean => {
-    // In a real app, this would call an API endpoint
-    // For now, we'll just return true to simulate success
-    return true;
+  const resetPassword = async (email: string): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'https://api.mromarelkholy.com';
+      
+      // Use authService which is already configured with axios
+      const response = await authService.resetPassword(email);
+      
+      if (response.success) {
+        return { 
+          success: true, 
+          message: response.message || 'OTP has been sent to your email.' 
+        };
+      } else {
+        return { 
+          success: false, 
+          error: response.error || 'Password reset failed.' 
+        };
+      }
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      return { 
+        success: false, 
+        error: 'An unexpected error occurred. Please try again later.' 
+      };
+    }
+  };
+
+  const resetPasswordWithOtp = async (
+    email: string, 
+    otp: string, 
+    newPassword: string, 
+    confirmPassword: string
+  ): Promise<{ success: boolean; message?: string; error?: string }> => {
+    try {
+      const response = await authService.resetPasswordWithOtp(
+        email,
+        otp,
+        newPassword,
+        confirmPassword
+      );
+      
+      return response;
+    } catch (error: any) {
+      console.error('Reset password with OTP error:', error);
+      return { 
+        success: false, 
+        error: 'An unexpected error occurred. Please try again later.' 
+      };
+    }
   };
 
   const updateProfile = (userUpdates: Partial<User>) => {
@@ -346,6 +392,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     resetPassword,
+    resetPasswordWithOtp,
     updateProfile,
     isAuthenticated,
     isLoading,

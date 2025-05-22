@@ -1,18 +1,6 @@
 import axios from 'axios';
 import { getDeviceId } from '../utils/deviceId';
 
-interface LoginResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    phoneNumber: string;
-    academicYear: string;
-    registrationDate: string;
-  };
-  token: string;
-}
-
 // Update to use the proxy setup in setupProxy.js instead of direct URL
 const API_URL = 'https://api.ibrahim-magdy.com';
 
@@ -23,63 +11,120 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  // Change to false to avoid CORS credentials issues
-  withCredentials: false
+  withCredentials: true  // Enable credentials to allow cookies
 });
+
+// Flag to prevent multiple refresh token requests
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any = null, token: string | null = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 // Request interceptor for handling common request issues
 api.interceptors.request.use(
-  (config: any) => {
+  (config) => {
     // Add device ID to headers
-    config.headers['Deviceid'] = getDeviceId();
+    config.headers = config.headers || {};
+    config.headers['DeviceId'] = getDeviceId();
     
-    // Add auth token to headers if it exists
+    // Add Authorization header if we have a token
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('Adding token to request:', {
-        url: config.url,
-        method: config.method,
-        hasToken: !!token,
-        headers: config.headers
-      });
-    } else {
-      console.log('No token found for request:', {
-        url: config.url,
-        method: config.method
-      });
     }
-    
+
+    console.log('API Request:', config.method, config.url, config.data);
     return config;
   },
-  (error: any) => {
-    console.error('Request interceptor error:', error);
+  (error) => {
     return Promise.reject(error);
   }
 );
 
 // Response interceptor for handling common response issues
 api.interceptors.response.use(
-  (response: any) => {
-    console.log('Response received:', {
-      url: response.config.url,
-      status: response.status,
-      data: response.data
-    });
+  (response) => {
     return response;
   },
-  (error: any) => {
-    console.error('Response error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: error.response?.data,
-      error: error
-    });
-    if (error.response?.status === 401) {
-      // Clear auth state on 401 Unauthorized
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_id');
+  async (error) => {
+    const originalRequest = error.config;
+
+    // If the error is 401 and we haven't already tried to refresh the token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If we're already refreshing, add this request to the queue
+        try {
+          const token = await new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          });
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          return api(originalRequest);
+        } catch (err) {
+          return Promise.reject(err);
+        }
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Get the current token (even if expired) for the refresh request
+        const currentToken = localStorage.getItem('auth_token');
+        console.log('Attempting token refresh with current token:', currentToken);
+        
+        // Call refresh token endpoint with required headers
+        const response = await axios.post(`${API_URL}/api/Auth/refresh-token`, {}, {
+          withCredentials: true,
+          headers: {
+            'Authorization': currentToken ? `Bearer ${currentToken}` : '',
+            'DeviceId': getDeviceId(),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+
+        console.log('Refresh token response:', response.data);
+        if ((response.data as any).success) {
+          const { token } = (response.data as any).data;
+          console.log('Received new token');
+          // Store the new token
+          localStorage.setItem('auth_token', token);
+          // Update the authorization header for the original request
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          // Update the default headers for future requests
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          // Process any queued requests with the new token
+          processQueue(null, token);
+          return api(originalRequest);
+        } else {
+          console.error('Refresh token response was not successful');
+          throw new Error('Refresh token failed');
+        }
+      } catch (refreshError: any) {
+        processQueue(refreshError, null);
+        // If refresh token fails, clear tokens and redirect to login
+        if (refreshError.response?.status === 401 || refreshError.response?.status === 403) {
+          localStorage.removeItem('auth_token');
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    if (error.response && error.response.status === 0) {
+      // CORS error or network error
+      console.error('CORS or Network Error:', error);
     }
     return Promise.reject(error);
   }
@@ -159,26 +204,10 @@ export const authService = {
     }
   },
 
-  validateToken: async () => {
-    try {
-      // Get student profile
-      const response = await api.get('/api/Student/profile');
-      console.log('Token validation response:', response);
-      return { success: true, data: response.data };
-    } catch (error: any) {
-      console.error('Token validation error:', error);
-      console.log('Token validation error response:', error.response);
-      if (error.response?.status === 401) {
-        return { success: false, error: 'Invalid token' };
-      }
-      return { success: false, error: 'Failed to validate token' };
-    }
-  },
-
   login: async (email: string, password: string) => {
     try {
       // Update the endpoint path to match the API structure with /api/ prefix
-      const response = await api.post<LoginResponse>('/api/Auth/login', { email, password });
+      const response = await api.post('/api/Auth/login', { email, password });
       console.log('Login response:', response);
       return { success: true, data: response.data };
     } catch (error: any) {
@@ -197,6 +226,125 @@ export const authService = {
         };
       }
       return { success: false, error: errorMessage };
+    }
+  },
+
+  // Test function for refresh token
+  testRefreshToken: async () => {
+    try {
+      console.log('Starting refresh token test...');
+      
+      // Step 1: Make initial request with invalid token to force 401
+      console.log('Making initial request with invalid token...');
+      try {
+        const initialResponse = await axios.get(`${API_URL}/api/Student/Student-Enrolled-Courses`, {
+          params: {
+            studentId: '61205712-b563-44ae-b208-be53b776848d',
+            pagenumber: 1,
+            pagesize: 10
+          },
+          headers: {
+            'Authorization': 'Bearer invalid_token_to_force_401',
+            'DeviceId': getDeviceId(),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        console.log('Initial request succeeded unexpectedly:', initialResponse);
+        return { success: false, error: 'Expected 401 but got 200' };
+      } catch (initialError: any) {
+        console.log('Initial request failed as expected with:', initialError.response?.status);
+        
+        // Step 2: Perform token refresh
+        console.log('Attempting token refresh...');
+        const currentToken = localStorage.getItem('auth_token');
+        const refreshResponse = await axios.post(`${API_URL}/api/Auth/refresh-token`, {}, {
+          withCredentials: true,
+          headers: {
+            'Authorization': currentToken ? `Bearer ${currentToken}` : '',
+            'DeviceId': getDeviceId(),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if ((refreshResponse.data as any).success) {
+          const { token } = (refreshResponse.data as any).data;
+          localStorage.setItem('auth_token', token);
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          console.log('Token refresh successful, retrying original request...');
+          
+          // Step 3: Retry original request with new token
+          const retryResponse = await api.get('/api/Student/Student-Enrolled-Courses', {
+            params: {
+              studentId: '61205712-b563-44ae-b208-be53b776848d',
+              pagenumber: 1,
+              pagesize: 10
+            }
+          });
+          
+          console.log('Retry request successful:', retryResponse.status);
+          return { 
+            success: true, 
+            data: {
+              refreshResponse: refreshResponse.data,
+              retryResponse: retryResponse.data
+            }
+          };
+        }
+      }
+      
+      return { success: false, error: 'Unexpected flow in refresh token test' };
+    } catch (error: any) {
+      console.error('Test refresh token error:', error);
+      console.error('Error response:', error.response?.data);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Refresh token test failed',
+        status: error.response?.status,
+        details: error.response?.data
+      };
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    try {
+      const response = await api.post('/api/Auth/ForgotPassword', null, {
+        params: { email }
+      });
+      console.log('Password reset response:', response);
+      return { 
+        success: true, 
+        message: (response.data as any).message
+      };
+    } catch (error: any) {
+      console.error('Password reset error details:', error);
+      return { 
+        success: false, 
+        error: error.response?.data?.message || 'Failed to send password reset OTP'
+      };
+    }
+  },
+
+  resetPasswordWithOtp: async (email: string, otp: string, newPassword: string, confirmPassword: string) => {
+    try {
+      const response = await api.post('/api/Auth/ResetPassword', {
+        email,
+        otp,
+        newPassword,
+        confirmPassword
+      });
+      console.log('Password reset with OTP response:', response);
+      return {
+        success: true,
+        message: (response.data as any).message || 'Password has been reset successfully'
+      };
+    } catch (error: any) {
+      console.error('Password reset with OTP error details:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Failed to reset password'
+      };
     }
   },
 };
