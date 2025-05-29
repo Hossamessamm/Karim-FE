@@ -172,6 +172,10 @@ const CourseViewer: React.FC = () => {
   const [isLandscape, setIsLandscape] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(true);
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+
+  const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
   // Function to show controls and set up auto-hide timer
   const showControlsTemporarily = () => {
@@ -596,6 +600,14 @@ const CourseViewer: React.FC = () => {
     }
   };
 
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    setShowSpeedMenu(false);
+    if (playerRef.current) {
+      (playerRef.current as any).player.player.setPlaybackRate(speed);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -876,6 +888,7 @@ const CourseViewer: React.FC = () => {
                               height="100%"
                               playing={playing}
                               controls={false}
+                              playbackRate={playbackSpeed}
                               onProgress={handleProgress}
                               onDuration={handleDuration}
                             />
@@ -968,7 +981,42 @@ const CourseViewer: React.FC = () => {
                                     </span>
                                   </div>
                                   
-                                  <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-8">
+                                    <div className="relative group">
+                                      <button
+                                        onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                                        className="text-white hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black rounded-lg flex items-center gap-2 px-3 py-1.5 bg-black/20"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg>
+                                        <span className="text-sm font-medium">{playbackSpeed}x</span>
+                                      </button>
+
+                                      {showSpeedMenu && (
+                                        <div 
+                                          className="absolute bottom-full right-0 mb-2 bg-black/95 rounded-xl py-2 min-w-[100px] shadow-lg backdrop-blur-sm border border-white/10 transform origin-bottom-right z-50"
+                                        >
+                                          {playbackSpeeds.map((speed) => (
+                                            <button
+                                              key={speed}
+                                              onClick={() => handleSpeedChange(speed)}
+                                              className={`w-full px-4 py-1.5 text-left text-sm hover:bg-white/10 transition-colors flex items-center justify-between ${
+                                                playbackSpeed === speed ? 'text-blue-400 bg-blue-500/10' : 'text-white'
+                                              }`}
+                                            >
+                                              <span>{speed}x</span>
+                                              {playbackSpeed === speed && (
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                              )}
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+
                                     <button
                                       onClick={handleFullscreen}
                                       className="text-white hover:text-blue-400 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-black rounded-lg"
