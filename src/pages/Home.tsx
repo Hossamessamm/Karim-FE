@@ -145,17 +145,12 @@ const Home: React.FC = () => {
 
               {/* Main Title */}
               <div className="space-y-6">
-                <h1 className="text-6xl sm:text-7xl lg:text-8xl font-black leading-tight">
-                  <span className="block text-3xl sm:text-3xl lg:text-4xl font-bold text-gray-600 mt-4">
-                    منصة  
-                  </span>
-                  <span className="block bg-gradient-to-r from-rose-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
-                    د/ كريم أيوب
-                  </span>
-                  
+                <h1 className="text-4xl sm:text-6xl lg:text-6xl font-black leading-tight py-8 overflow-visible z-10">
+                  <span className="block text-2xl sm:text-2xl lg:text-3xl font-bold text-gray-600 mt-4 mb-4">منصة</span>
+                  <span className="block bg-gradient-to-r from-rose-600 via-pink-600 to-orange-600 bg-clip-text text-transparent overflow-visible leading-[1.15]">د/ كريم أيوب</span>
                 </h1>
                 
-                <p className="text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                <p className="text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto lg:mx-0 mt-6 mb-8">
                   اكتشف طريقة جديدة وممتعة لتعلم مادة الأحياء مع أفضل المناهج التعليمية
                 </p>
               </div>

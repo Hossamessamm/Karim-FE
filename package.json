@@ -17,8 +17,8 @@
     "web-vitals": "^3.5.1"
   },
   "devDependencies": {
-    "@types/react": "^18.3.21",
-    "@types/react-dom": "^18.2.18",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
     "@types/react-router-dom": "^5.3.3"
   },
   "scripts": {
