@@ -1,5 +1,5 @@
 import React from 'react';
-import teacherImage from '../assets/images/teachers/mr.karim.jpg';
+import teacherImage from '../assets/images/teachers/mr.karim2.jpg';
 
 const About: React.FC = () => {
   return (
