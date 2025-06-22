@@ -38,11 +38,11 @@ const Navbar: React.FC = () => {
             <div className="flex-shrink-0">
               <Link to="/" className="flex items-center group">
                 {/* Logo icon */}
-                
+                {/* Logo icon removed */}
                 {/* Brand name */}
                 <div className="relative">
                   <span className="inline-block px-6 py-2 text-2xl font-extrabold text-blue-700 bg-white border-2 border-blue-200 rounded-full shadow-sm font-['Reem_Kufi'] tracking-[0.5px]">
-                    د/ كريم أيوب
+                    منصة د. كريم أيوب
                   </span>
                 </div>
               </Link>
