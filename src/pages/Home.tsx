@@ -18,6 +18,11 @@ import {
   ChevronDown,
   Check
 } from 'lucide-react';
+import microbiologyIcon from '../assets/images/microbiology.png';
+import bacteriaIcon from '../assets/images/bacteria.png';
+import experimentIcon from '../assets/images/experiment.png';
+import microscopeIcon from '../assets/images/microscope.png';
+import genomeIcon from '../assets/images/genome.png';
 
 interface Stat {
   number: string;
@@ -113,6 +118,20 @@ const Home: React.FC = () => {
     { icon: '🎯', title: 'نسبة نجاح', desc: '98%', color: 'bg-purple-100 text-purple-800' }
   ];
 
+  // Static biology icon placements for the background
+  const staticIcons = [
+    <img key="bio-icon-1" src={microbiologyIcon} alt="microbiology" style={{position: 'absolute', top: '5%', left: '5%', width: '60px', height: '60px', opacity: 0.18, pointerEvents: 'none', zIndex: 1, transform: 'rotate(10deg)'}} />,
+    <img key="bio-icon-2" src={bacteriaIcon} alt="bacteria" style={{position: 'absolute', top: '85%', left: '15%', width: '50px', height: '50px', opacity: 0.16, pointerEvents: 'none', zIndex: 1, transform: 'rotate(-15deg)'}} />,
+    <img key="bio-icon-3" src={experimentIcon} alt="experiment" style={{position: 'absolute', top: '20%', left: '75%', width: '70px', height: '70px', opacity: 0.15, pointerEvents: 'none', zIndex: 1, transform: 'rotate(25deg)'}} />,
+    <img key="bio-icon-4" src={microscopeIcon} alt="microscope" style={{position: 'absolute', top: '65%', left: '70%', width: '55px', height: '55px', opacity: 0.17, pointerEvents: 'none', zIndex: 1, transform: 'rotate(-30deg)'}} />,
+    <img key="bio-icon-5" src={genomeIcon} alt="genome" style={{position: 'absolute', top: '10%', left: '55%', width: '65px', height: '65px', opacity: 0.14, pointerEvents: 'none', zIndex: 1, transform: 'rotate(40deg)'}} />,
+    <img key="bio-icon-6" src={bacteriaIcon} alt="bacteria" style={{position: 'absolute', top: '55%', left: '35%', width: '45px', height: '45px', opacity: 0.13, pointerEvents: 'none', zIndex: 1, transform: 'rotate(5deg)'}} />,
+    <img key="bio-icon-7" src={experimentIcon} alt="experiment" style={{position: 'absolute', top: '90%', left: '60%', width: '60px', height: '60px', opacity: 0.15, pointerEvents: 'none', zIndex: 1, transform: 'rotate(-20deg)'}} />,
+    <img key="bio-icon-8" src={microbiologyIcon} alt="microbiology" style={{position: 'absolute', top: '35%', left: '10%', width: '55px', height: '55px', opacity: 0.16, pointerEvents: 'none', zIndex: 1, transform: 'rotate(12deg)'}} />,
+    <img key="bio-icon-9" src={genomeIcon} alt="genome" style={{position: 'absolute', top: '30%', left: '40%', width: '50px', height: '50px', opacity: 0.14, pointerEvents: 'none', zIndex: 1, transform: 'rotate(-8deg)'}} />,
+    <img key="bio-icon-10" src={microscopeIcon} alt="microscope" style={{position: 'absolute', top: '80%', left: '5%', width: '60px', height: '60px', opacity: 0.15, pointerEvents: 'none', zIndex: 1, transform: 'rotate(18deg)'}} />
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-cairo" dir="rtl">
       {/* Hero Section */}
@@ -127,6 +146,8 @@ const Home: React.FC = () => {
           <svg className="absolute top-1/2 left-1/4 w-24 h-24 opacity-10" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="8" fill="#4B5563" opacity="0.1"/><ellipse cx="32" cy="32" rx="24" ry="8" stroke="#4B5563" strokeWidth="2"/><ellipse cx="32" cy="32" rx="8" ry="24" stroke="#4B5563" strokeWidth="2" transform="rotate(45 32 32)"/></svg>
           {/* Leaf */}
           <svg className="absolute bottom-10 left-1/3 w-28 h-28 opacity-10" viewBox="0 0 64 64" fill="none"><path d="M32 56C32 56 56 40 56 16C56 16 40 8 32 8C24 8 8 16 8 16C8 40 32 56 32 56Z" stroke="#4B5563" strokeWidth="2"/></svg>
+          {/* Static Biology Icons */}
+          {staticIcons}
         </div>
         {/* Subtle Pattern */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(156,163,175,0.08)_1px,transparent_0)] bg-[size:20px_20px] opacity-30"></div>
@@ -209,7 +230,7 @@ const Home: React.FC = () => {
                 <div className="relative bg-white/70 backdrop-blur-sm border border-white/50 rounded-3xl p-8 transform group-hover:scale-105 transition-all duration-500 shadow-2xl">
                   <img
                     src={teacherImage}
-                    alt="المعلم عمر الخولي"
+                    alt="د/ كريم أيوب"
                     className="w-full h-auto rounded-2xl shadow-lg"
                   />
                   
@@ -240,6 +261,8 @@ const Home: React.FC = () => {
           <svg className="absolute top-8 right-1/4 w-24 h-24 opacity-10" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="8" fill="#4B5563" opacity="0.1"/><ellipse cx="32" cy="32" rx="24" ry="8" stroke="#4B5563" strokeWidth="2"/><ellipse cx="32" cy="32" rx="8" ry="24" stroke="#4B5563" strokeWidth="2" transform="rotate(45 32 32)"/></svg>
           {/* Leaf */}
           <svg className="absolute bottom-8 left-1/4 w-20 h-20 opacity-10" viewBox="0 0 64 64" fill="none"><path d="M32 56C32 56 56 40 56 16C56 16 40 8 32 8C24 8 8 16 8 16C8 40 32 56 32 56Z" stroke="#4B5563" strokeWidth="2"/></svg>
+          {/* Static Biology Icons */}
+          {staticIcons}
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}

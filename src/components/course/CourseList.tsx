@@ -210,10 +210,18 @@ const CourseList: React.FC = () => {
   useEffect(() => {
     const loadCourses = async () => {
       const response = await getCourses(selectedGrade, currentPage, ITEMS_PER_PAGE);
-      if (response?.success) {
-        setCourses(response.data.courses);
-        setTotalPages(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
+      if (response?.success && response.data) {
+        setCourses(response.data.courses || []);
+        setTotalPages(response.data.totalPages || 1);
+        setTotalCount(
+          response.data && response.data.totalCount != null
+            ? response.data.totalCount
+            : 0
+        );
+      } else {
+        setCourses([]);
+        setTotalPages(1);
+        setTotalCount(0);
       }
     };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const socialLinks = [
   { href: 'https://wa.me/', label: 'واتساب', icon: (
@@ -14,6 +14,32 @@ const socialLinks = [
 ];
 
 const Footer: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Scroll to courses section handler
+  const handleCoursesClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      const section = document.getElementById('courses-section');
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      navigate('/', { replace: false });
+      setTimeout(() => {
+        const section = document.getElementById('courses-section');
+        if (section) {
+          section.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 400);
+    }
+  };
+
   return (
     <footer className="relative bg-gray-100 text-gray-800 pt-0" dir="rtl">
       {/* Top Wave SVG */}
@@ -49,9 +75,9 @@ const Footer: React.FC = () => {
                   روابط سريعة
                 </h4>
                 <ul className="space-y-2">
-                  <li><Link to="/" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الرئيسية</Link></li>
-                  <li><Link to="/about" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">عن المنصة</Link></li>
-                  <li><Link to="/courses" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الدورات</Link></li>
+                  <li><Link to="/" onClick={scrollToTop} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الرئيسية</Link></li>
+                  <li><Link to="/about" onClick={scrollToTop} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">عن المنصة</Link></li>
+                  <li><Link to="/courses" onClick={handleCoursesClick} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الدورات</Link></li>
                 </ul>
               </div>
               <div>
@@ -60,10 +86,10 @@ const Footer: React.FC = () => {
                   حسابك
                 </h4>
                 <ul className="space-y-2">
-                  <li><Link to="/login" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">تسجيل الدخول</Link></li>
-                  <li><Link to="/profile" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الملف الشخصي</Link></li>
-                  <li><Link to="/enrolled-courses" className="text-gray-700 hover:text-blue-700 transition-colors text-sm">دوراتي</Link></li>
-                  <li><Link to="/register" className="text-blue-600 hover:text-blue-800 font-semibold transition-colors text-sm">سجل الآن</Link></li>
+                  <li><Link to="/login" onClick={scrollToTop} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">تسجيل الدخول</Link></li>
+                  <li><Link to="/profile" onClick={scrollToTop} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">الملف الشخصي</Link></li>
+                  <li><Link to="/enrolled-courses" onClick={scrollToTop} className="text-gray-700 hover:text-blue-700 transition-colors text-sm">دوراتي</Link></li>
+                  <li><Link to="/register" onClick={scrollToTop} className="text-blue-600 hover:text-blue-800 font-semibold transition-colors text-sm">سجل الآن</Link></li>
                 </ul>
               </div>
             </div>

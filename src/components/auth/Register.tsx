@@ -37,7 +37,7 @@ const Register: React.FC = () => {
     try {
       const result = await register(name, email, password, confirmPassword, phoneNumber, academicGrade);
       if (result.success) {
-        navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+        navigate('/login');
       } else {
         setError(result.error || 'فشل إنشاء الحساب. الرجاء المحاولة مرة أخرى.');
       }

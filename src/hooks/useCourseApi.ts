@@ -428,20 +428,20 @@ export const useCourseApi = () => {
         
         console.log('Active courses response:', {
           success: response.data.success,
-          totalCount: response.data.data.totalCount,
-          coursesCount: response.data.data.courses.length,
-          firstCourse: response.data.data.courses[0]?.courseName
+          totalCount: response.data.data && response.data.data.totalCount != null ? response.data.data.totalCount : 0,
+          coursesCount: response.data.data && response.data.data.courses ? response.data.data.courses.length : 0,
+          firstCourse: response.data.data && response.data.data.courses && response.data.data.courses[0] ? response.data.data.courses[0].courseName : undefined
         });
 
         const result: CourseResponse = {
           success: response.data.success,
           message: response.data.message,
           data: {
-            totalCount: response.data.data.totalCount,
-            totalPages: response.data.data.totalPages,
-            currentPage: response.data.data.currentPage,
-            pageSize: response.data.data.pageSize,
-            courses: response.data.data.courses.map(course => ({
+            totalCount: response.data.data && response.data.data.totalCount != null ? response.data.data.totalCount : 0,
+            totalPages: response.data.data && response.data.data.totalPages != null ? response.data.data.totalPages : 0,
+            currentPage: response.data.data && response.data.data.currentPage != null ? response.data.data.currentPage : 1,
+            pageSize: response.data.data && response.data.data.pageSize != null ? response.data.data.pageSize : 10,
+            courses: response.data.data && response.data.data.courses ? response.data.data.courses.map(course => ({
               ...course,
               // Ensure all required fields are present
               term: course.term || 'First',
@@ -450,7 +450,7 @@ export const useCourseApi = () => {
               grade: course.grade || formattedGrade,
               description: course.description || '',
               imagePath: course.imagePath || 'https://dummyimage.com/600x400/000/fff'
-            }))
+            })) : []
           }
         };
         
