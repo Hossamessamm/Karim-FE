@@ -212,19 +212,49 @@ export const authService = {
       return { success: true, data: response.data };
     } catch (error: any) {
       console.error('Login error details:', error);
+      
+      // Check for network errors
       if (error.code === 'ERR_NETWORK') {
-        return { success: false, error: 'Network error. Please check your connection or contact administrator about CORS settings.' };
-      }
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      // If email is unconfirmed, return special error object
-      if (error.response?.data?.message === 'Please confirm your email first.') {
         return { 
           success: false, 
-          error: error.response.data.message,
+          error: 'Network error. Please check your connection or contact administrator about CORS settings.' 
+        };
+      }
+      
+      // Check for device limit error - this can come in different formats
+      const maxDevicesErrorMessage = "You can't log in from more than two devices.";
+      
+      // Check if the error is in response.data as a string
+      if (typeof error.response?.data === 'string' && error.response?.data.includes(maxDevicesErrorMessage)) {
+        return {
+          success: false,
+          error: maxDevicesErrorMessage,
+          isMaxDevicesError: true
+        };
+      }
+      
+      // Check if the error is in response.data.message
+      const errorMessage = error.response?.data?.message || 'Login failed';
+      
+      // If email is unconfirmed, return special error object
+      if (errorMessage === 'Please confirm your email first.') {
+        return { 
+          success: false, 
+          error: errorMessage,
           isUnconfirmedEmail: true,
           email: email
         };
       }
+      
+      // Check if the regular error message contains the max devices text
+      if (errorMessage.includes(maxDevicesErrorMessage)) {
+        return {
+          success: false,
+          error: maxDevicesErrorMessage,
+          isMaxDevicesError: true
+        };
+      }
+      
       return { success: false, error: errorMessage };
     }
   },

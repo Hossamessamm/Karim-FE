@@ -63,19 +63,19 @@ const EnrolledCourses: React.FC = () => {
       );
 
       if (!response.ok) {
-        if (response.status === 401) {
-          setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
-          navigate('/login');
-          return;
+      if (response.status === 401) {
+        setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+        navigate('/login');
+        return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data: ApiResponse = await response.json();
-
+        
       if (data.success && data.data) {
-        setCourses(data.data.courses);
-        setTotalPages(data.data.totalPages);
+          setCourses(data.data.courses);
+          setTotalPages(data.data.totalPages);
         setTotalCount(data.data.totalCount);
         setCurrentPage(data.data.currentPage);
       } else {

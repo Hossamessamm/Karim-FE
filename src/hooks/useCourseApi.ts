@@ -443,7 +443,7 @@ export const useCourseApi = () => {
           };
           return emptyResponse;
         }
-
+        
         console.log('Active courses response:', {
           success: apiResponse.success,
           totalCount: apiResponse.data.totalCount,
@@ -653,7 +653,7 @@ export const useCourseApi = () => {
       }
 
       const response = await fetch(
-        `${BASE_URL}/Student/add-course-by-code?Code=${code}&StudentId=${studentId}`,
+        `${BASE_URL}api/Student/add-course-by-code?Code=${code}&StudentId=${studentId}`,
         {
           method: 'POST',
           headers: {

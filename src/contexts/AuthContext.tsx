@@ -8,6 +8,7 @@ interface AuthContextType {
     success: boolean;
     error?: string;
     isUnconfirmedEmail?: boolean;
+    isMaxDevicesError?: boolean;
   }>;
   register: (name: string, email: string, password: string, confirmPassword: string, phoneNumber: string, grade: string) => Promise<{success: boolean, error?: string}>;
   logout: () => Promise<void>;
@@ -254,7 +255,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Login successful, auth state updated');
         return { success: true };
       }
-      return result;
+      
+      // Pass through any special flags like isMaxDevicesError
+      return {
+        success: false,
+        error: result.error,
+        isUnconfirmedEmail: result.isUnconfirmedEmail,
+        isMaxDevicesError: result.isMaxDevicesError
+      };
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: 'An unexpected error occurred' };
