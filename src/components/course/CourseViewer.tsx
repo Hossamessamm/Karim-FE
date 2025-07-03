@@ -232,6 +232,10 @@ const CourseViewer: React.FC = () => {
     const lesson = unit.lessons[lessonIndex];
     console.log('Selected lesson:', lesson);
     
+    if (lesson.type === 'Quiz') {
+      console.log('Selected quiz with ID:', lesson.id);
+    }
+    
     setSelectedLesson(lesson);
     setActiveUnit(unitIndex);
     setActiveLesson(lessonIndex);
@@ -607,6 +611,12 @@ const CourseViewer: React.FC = () => {
       (playerRef.current as any).player.player.setPlaybackRate(speed);
     }
   };
+
+  useEffect(() => {
+    if (selectedLesson?.type === 'Quiz') {
+      console.log('Selected quiz lesson with ID:', selectedLesson.id);
+    }
+  }, [selectedLesson]);
 
   if (isLoading) {
     return (
@@ -1097,6 +1107,7 @@ const CourseViewer: React.FC = () => {
                       onComplete={handleLessonComplete}
                       hasNextLesson={hasNextLesson}
                       onMoveToNextLesson={goToNextLesson}
+                      lessonId={selectedLesson.id}
                     />
                   </div>
                 )}

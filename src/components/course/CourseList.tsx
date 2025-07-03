@@ -209,11 +209,24 @@ const CourseList: React.FC = () => {
   // Load courses when grade or page changes
   useEffect(() => {
     const loadCourses = async () => {
-      const response = await getCourses(selectedGrade, currentPage, ITEMS_PER_PAGE);
-      if (response?.success) {
-        setCourses(response.data.courses);
-        setTotalPages(response.data.totalPages);
-        setTotalCount(response.data.totalCount);
+      try {
+        const response = await getCourses(selectedGrade, currentPage, ITEMS_PER_PAGE);
+        if (response?.success && response?.data) {
+          setCourses(response.data.courses || []);
+          setTotalPages(response.data.totalPages || 1);
+          setTotalCount(response.data.totalCount || 0);
+        } else {
+          // If response is not successful or data is missing, set empty state
+          setCourses([]);
+          setTotalPages(1);
+          setTotalCount(0);
+        }
+      } catch (error) {
+        console.error('Error loading courses:', error);
+        // Set empty state on error
+        setCourses([]);
+        setTotalPages(1);
+        setTotalCount(0);
       }
     };
 

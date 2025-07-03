@@ -5,8 +5,12 @@ import { useAuth } from '../../contexts/AuthContext';
 interface Course {
   id: string;
   courseName: string;
-  imagePath: string;
+  term: string;
+  active: boolean;
+  price: number;
+  grade: string;
   description: string;
+  imagePath: string;
   modificationDate: string;
 }
 
@@ -28,7 +32,8 @@ const EnrolledCourses: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const pageSize = 9;
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 10; // Updated to match API default
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
@@ -42,8 +47,6 @@ const EnrolledCourses: React.FC = () => {
       setError(null);
       
       const token = localStorage.getItem('auth_token');
-      console.log('Auth Token:', token ? 'Found' : 'Not Found');
-
       if (!token) {
         setError('لم يتم العثور على رمز المصادقة. الرجاء تسجيل الدخول مرة أخرى.');
         return;
@@ -59,34 +62,34 @@ const EnrolledCourses: React.FC = () => {
         }
       );
 
-      console.log('API Response Status:', response.status);
-      const data: ApiResponse = await response.json();
-      console.log('API Response Data:', data);
-
-      if (response.status === 401) {
-        setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
-        navigate('/login');
-        return;
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+          navigate('/login');
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (data.success) {
-        console.log('Courses received:', data.data.courses);
-        console.log('Total pages:', data.data.totalPages);
-        console.log('Current page:', data.data.currentPage);
-        
-        if (Array.isArray(data.data.courses)) {
-          setCourses(data.data.courses);
-          setTotalPages(data.data.totalPages);
-        } else {
-          console.error('Courses data is not an array:', data.data.courses);
-          setError('تنسيق البيانات غير صحيح');
-        }
+      const data: ApiResponse = await response.json();
+
+      if (data.success && data.data) {
+        setCourses(data.data.courses);
+        setTotalPages(data.data.totalPages);
+        setTotalCount(data.data.totalCount);
+        setCurrentPage(data.data.currentPage);
       } else {
-        setError(data.message);
+        setError(data.message || 'حدث خطأ أثناء جلب الدورات');
+        setCourses([]);
+        setTotalPages(1);
+        setTotalCount(0);
       }
     } catch (err) {
       console.error('Error fetching courses:', err);
       setError('حدث خطأ أثناء جلب الدورات');
+      setCourses([]);
+      setTotalPages(1);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
@@ -96,21 +99,23 @@ const EnrolledCourses: React.FC = () => {
     navigate(`/course-player/${courseId}`);
   };
 
-  // Debug render information
-  console.log('Render state:', {
-    loading,
-    error,
-    coursesCount: courses.length,
-    currentPage,
-    totalPages
-  });
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('ar-EG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">دوراتي</h1>
-          <p className="text-gray-600">اكتشف دوراتك المسجلة وابدأ رحلة التعلم</p>
+          <p className="text-gray-600">
+            {totalCount > 0 ? `لديك ${totalCount} ${totalCount === 1 ? 'دورة' : 'دورات'} مسجلة` : 'اكتشف دوراتك المسجلة وابدأ رحلة التعلم'}
+          </p>
         </div>
 
         {loading ? (
@@ -139,16 +144,29 @@ const EnrolledCourses: React.FC = () => {
                 >
                   <div className="relative h-48 bg-gray-200">
                     <img
-                      src={course.imagePath !== 'string' ? course.imagePath : 'https://via.placeholder.com/400x225'}
+                      src={course.imagePath}
                       alt={course.courseName}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
+                    {course.term && (
+                      <div className="absolute top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm">
+                        {course.term === 'First' ? 'الترم الأول' : 'الترم الثاني'}
+                      </div>
+                    )}
                   </div>
                   <div className="p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{course.courseName}</h3>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {course.description !== 'string' ? course.description : 'لا يوجد وصف متاح لهذه الدورة'}
+                      {course.description}
                     </p>
+                    <div className="flex items-center justify-between mb-4">
+                      <span className="text-sm text-gray-500">
+                        تاريخ التحديث: {formatDate(course.modificationDate)}
+                      </span>
+                      <span className="text-sm font-medium text-primary">
+                        {course.price} جنيه
+                      </span>
+                    </div>
                     <button
                       onClick={() => handleStartCourse(course.id)}
                       className="w-full py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 flex items-center justify-center gap-2 group"

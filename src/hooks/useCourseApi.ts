@@ -425,23 +425,41 @@ export const useCourseApi = () => {
     return executeRequest<CourseResponse>(key, async () => {
       try {
         const response = await api.get<ApiResponse<CourseListData>>('/AdminStudent/CourseActive', { params });
+        const apiResponse = response.data as ApiResponse<CourseListData>;
         
+        // Add null check for response.data.data
+        if (!apiResponse?.data) {
+          console.warn('No data received from API');
+          const emptyResponse: CourseResponse = {
+            success: false,
+            message: 'No data received from API',
+            data: {
+              totalCount: 0,
+              totalPages: 0,
+              currentPage: page,
+              pageSize: pageSize,
+              courses: []
+            }
+          };
+          return emptyResponse;
+        }
+
         console.log('Active courses response:', {
-          success: response.data.success,
-          totalCount: response.data.data.totalCount,
-          coursesCount: response.data.data.courses.length,
-          firstCourse: response.data.data.courses[0]?.courseName
+          success: apiResponse.success,
+          totalCount: apiResponse.data.totalCount,
+          coursesCount: apiResponse.data.courses.length,
+          firstCourse: apiResponse.data.courses[0]?.courseName
         });
 
         const result: CourseResponse = {
-          success: response.data.success,
-          message: response.data.message,
+          success: apiResponse.success,
+          message: apiResponse.message,
           data: {
-            totalCount: response.data.data.totalCount,
-            totalPages: response.data.data.totalPages,
-            currentPage: response.data.data.currentPage,
-            pageSize: response.data.data.pageSize,
-            courses: response.data.data.courses.map(course => ({
+            totalCount: apiResponse.data.totalCount || 0,
+            totalPages: apiResponse.data.totalPages || 0,
+            currentPage: apiResponse.data.currentPage || page,
+            pageSize: apiResponse.data.pageSize || pageSize,
+            courses: (apiResponse.data.courses || []).map(course => ({
               ...course,
               // Ensure all required fields are present
               term: course.term || 'First',

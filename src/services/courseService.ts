@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { BASE_URL } from '../apiConfig';
+import api from './api';
 
 export interface Course {
   id: string;
@@ -44,5 +45,29 @@ export const getCourses = async (
     return response.data;
   } catch (error) {
     throw new Error('Failed to fetch courses');
+  }
+};
+
+interface QuizResultSubmission {
+  lessonId: number;
+  score: number;
+  notes?: string;
+}
+
+interface QuizResultResponse {
+  success: boolean;
+  message: string;
+  data: null;
+}
+
+export const submitQuizResult = async (result: QuizResultSubmission): Promise<QuizResultResponse> => {
+  try {
+    const response = await api.post<QuizResultResponse>('https://api.ibrahim-magdy.com/api/quizresult/submit', result);
+    return response.data;
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      throw new Error('You are not authorized to submit quiz results');
+    }
+    throw new Error(error.response?.data?.message || 'Failed to submit quiz result');
   }
 }; 

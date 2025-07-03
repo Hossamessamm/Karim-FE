@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { QuizQuestion } from '../../hooks/useCourseApi';
+import { submitQuizResult } from '../../services/courseService';
 
 interface QuizContentProps {
   questions: QuizQuestion[];
   onComplete: () => void;
   hasNextLesson?: boolean;
   onMoveToNextLesson?: () => void;
+  lessonId: number;
 }
 
-export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete, hasNextLesson = false, onMoveToNextLesson }) => {
+export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete, hasNextLesson = false, onMoveToNextLesson, lessonId }) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showAnswers, setShowAnswers] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswers(prev => {
@@ -22,11 +26,29 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete,
     });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      setShowResults(true);
+      setSubmitting(true);
+      setError(null);
+
+      const score = calculateScore();
+      console.log('Quiz completed with score:', score);
+      
+      try {
+        await submitQuizResult({
+          lessonId,
+          score: score.percentage,
+          notes: `Correct answers: ${score.correct}/${score.total}`
+        });
+        setShowResults(true);
+      } catch (err: any) {
+        setError(err.message || 'Failed to submit quiz results');
+        console.error('Failed to submit quiz results:', err);
+      } finally {
+        setSubmitting(false);
+      }
     }
   };
 
@@ -102,18 +124,37 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete,
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <button
-              onClick={handleNext}
-              disabled={selectedAnswers[currentQuestion] === undefined}
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                selectedAnswers[currentQuestion] === undefined
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-primary text-white hover:bg-primary/90'
-              }`}
-            >
-              {currentQuestion < questions.length - 1 ? 'السؤال التالي' : 'إنهاء الاختبار'}
-            </button>
+          <div className="flex flex-col gap-4">
+            {error && (
+              <div className="bg-red-50 text-red-700 p-4 rounded-lg">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+            <div className="flex justify-end">
+              <button
+                onClick={handleNext}
+                disabled={selectedAnswers[currentQuestion] === undefined || submitting}
+                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                  selectedAnswers[currentQuestion] === undefined || submitting
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-primary text-white hover:bg-primary/90'
+                }`}
+              >
+                {submitting ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    جاري الإرسال...
+                  </span>
+                ) : currentQuestion < questions.length - 1 ? (
+                  'السؤال التالي'
+                ) : (
+                  'إنهاء الاختبار'
+                )}
+              </button>
+            </div>
           </div>
         </div>
       ) : (
@@ -180,12 +221,35 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete,
                 ))}
               </div>
             )}
+
+            {error && (
+              <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4 max-w-sm mx-auto">
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
           </div>
           <button
             onClick={handleComplete}
-            className="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            disabled={submitting}
+            className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+              submitting
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-primary text-white hover:bg-primary/90'
+            }`}
           >
-            {hasNextLesson ? 'إنهاء والانتقال للدرس التالي' : 'إنهاء وعودة للدرس'}
+            {submitting ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                جاري الإرسال...
+              </span>
+            ) : hasNextLesson ? (
+              'إنهاء والانتقال للدرس التالي'
+            ) : (
+              'إنهاء وعودة للدرس'
+            )}
           </button>
         </div>
       )}

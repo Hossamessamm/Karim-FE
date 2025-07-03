@@ -5,6 +5,7 @@ import { CourseProvider } from './contexts/CourseContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import MainLayout from './components/layout/MainLayout';
 
 // Pages
 import Home from './pages/Home';
@@ -12,7 +13,6 @@ import About from './pages/About';
 import ForgotPassword from './pages/ForgotPassword';
 
 // Components
-import Navbar from './components/common/Navbar';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ResetPassword from './components/auth/ResetPassword';
@@ -31,9 +31,8 @@ function App() {
           <AuthProvider>
             <CourseProvider>
               <div className="min-h-screen bg-slate-50">
-                <Navbar />
-                <main className="pb-12">
-                  <Routes>
+                <Routes>
+                  <Route element={<MainLayout />}>
                     <Route path="/" element={<Home />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/login" element={<Login />} />
@@ -65,8 +64,8 @@ function App() {
                         <RefreshTokenTest />
                       </ProtectedRoute>
                     } />
-                  </Routes>
-                </main>
+                  </Route>
+                </Routes>
               </div>
             </CourseProvider>
           </AuthProvider>
