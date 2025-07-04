@@ -1,24 +1,24 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
-const { BASE_URL } = require('./apiConfig');
 
 module.exports = function(app) {
   app.use(
     '/api',
     createProxyMiddleware({
-      target: BASE_URL,
+      target: 'https://api.ibrahim-magdy.com',
       changeOrigin: true,
-      // Don't rewrite the path since the API actually expects /api in the URL
-      // pathRewrite: { '^/api': '' },
-      onProxyRes: function(proxyRes, req, res) {
-        // Log proxy activity for debugging
-        console.log('Proxy Response:', req.method, req.path);
-        
-        // Fix CORS headers for credentials
-        proxyRes.headers['Access-Control-Allow-Origin'] = 'https://localhost:3000';
-        proxyRes.headers['Access-Control-Allow-Credentials'] = 'true';
-        proxyRes.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
-        proxyRes.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With';
+      secure: false, // Ignore SSL certificate issues
+      onProxyReq: function(proxyReq, req, res) {
+        // Log outgoing requests for debugging
+        console.log('Proxying request:', req.method, req.path);
       },
+      onProxyRes: function(proxyRes, req, res) {
+        // Log incoming responses for debugging
+        console.log('Proxy Response:', req.method, req.path, proxyRes.statusCode);
+      },
+      onError: function(err, req, res) {
+        // Log proxy errors
+        console.error('Proxy Error:', err);
+      }
     })
   );
 }; 

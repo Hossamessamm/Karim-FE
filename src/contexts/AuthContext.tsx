@@ -8,6 +8,7 @@ interface AuthContextType {
     success: boolean;
     error?: string;
     isUnconfirmedEmail?: boolean;
+    isMaxDevicesError?: boolean;
   }>;
   register: (name: string, email: string, password: string, confirmPassword: string, phoneNumber: string, grade: string) => Promise<{success: boolean, error?: string}>;
   logout: () => Promise<void>;

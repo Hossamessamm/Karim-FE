@@ -13,7 +13,7 @@ interface LoginResponse {
   token: string;
 }
 
-// Update to use the proxy setup in setupProxy.js instead of direct URL
+// Use relative URL to work with the proxy
 const API_URL = 'https://api.ibrahim-magdy.com';
 
 // Create axios instance with base configuration
@@ -23,8 +23,8 @@ const api = axios.create({
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
-  // Change to false to avoid CORS credentials issues
-  withCredentials: false
+  // Enable credentials for session handling
+  withCredentials: true
 });
 
 // Request interceptor for handling common request issues
@@ -37,18 +37,19 @@ api.interceptors.request.use(
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('Adding token to request:', {
-        url: config.url,
-        method: config.method,
-        hasToken: !!token,
-        headers: config.headers
-      });
-    } else {
-      console.log('No token found for request:', {
-        url: config.url,
-        method: config.method
-      });
     }
+
+    // Add CORS headers
+    config.headers['Access-Control-Allow-Origin'] = '*';
+    config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+    config.headers['Access-Control-Allow-Headers'] = 'Origin, Content-Type, Accept, Authorization, X-Request-With';
+    
+    console.log('Request config:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
     
     return config;
   },
@@ -64,7 +65,8 @@ api.interceptors.response.use(
     console.log('Response received:', {
       url: response.config.url,
       status: response.status,
-      data: response.data
+      data: response.data,
+      headers: response.headers
     });
     return response;
   },
@@ -73,14 +75,31 @@ api.interceptors.response.use(
       url: error.config?.url,
       status: error.response?.status,
       data: error.response?.data,
-      error: error
+      headers: error.response?.headers,
+      error: error.message
     });
-    if (error.response?.status === 401) {
-      // Clear auth state on 401 Unauthorized
-      localStorage.removeItem('currentUser');
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('user_id');
+
+    // Handle specific error cases
+    if (error.response) {
+      // The request was made and the server responded with a status code
+      // that falls out of the range of 2xx
+      if (error.response.status === 401) {
+        // Clear auth state on 401 Unauthorized
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('isAuthenticated');
+      } else if (error.response.status === 403) {
+        // Handle forbidden errors (e.g., max devices)
+        console.log('Forbidden error:', error.response.data);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      console.error('No response received:', error.request);
+    } else {
+      // Something happened in setting up the request that triggered an Error
+      console.error('Request setup error:', error.message);
     }
+
     return Promise.reject(error);
   }
 );
@@ -177,26 +196,70 @@ export const authService = {
 
   login: async (email: string, password: string) => {
     try {
-      // Update the endpoint path to match the API structure with /api/ prefix
       const response = await api.post<LoginResponse>('/api/Auth/login', { email, password });
       console.log('Login response:', response);
       return { success: true, data: response.data };
     } catch (error: any) {
-      console.error('Login error details:', error);
+      console.error('Login error details:', {
+        error,
+        response: error.response,
+        data: error.response?.data,
+        message: error.response?.data?.message,
+        status: error.response?.status
+      });
+      
       if (error.code === 'ERR_NETWORK') {
         return { success: false, error: 'Network error. Please check your connection or contact administrator about CORS settings.' };
       }
-      const errorMessage = error.response?.data?.message || 'Login failed';
-      // If email is unconfirmed, return special error object
-      if (error.response?.data?.message === 'Please confirm your email first.') {
+
+      // Get the error message from various possible locations
+      const errorMessage = error.response?.data?.message || 
+                         error.response?.data?.error || 
+                         error.response?.data || 
+                         error.message || 
+                         'Login failed';
+      
+      console.log('Parsed error message:', errorMessage);
+      
+      // Handle max devices error - check for various possible message formats
+      const maxDevicesMessages = [
+        "You can't log in from more than two devices.",
+        "Cannot login from more than two devices",
+        "Maximum devices reached",
+        "تم تجاوز الحد المسموح به من الأجهزة"
+      ];
+      
+      if (maxDevicesMessages.some(msg => errorMessage.includes(msg))) {
+        console.log('Detected max devices error');
         return { 
           success: false, 
-          error: error.response.data.message,
+          error: errorMessage,
+          isMaxDevicesError: true
+        };
+      }
+      
+      // Handle unconfirmed email error - check for various possible message formats
+      const unconfirmedEmailMessages = [
+        'Please confirm your email first',
+        'Email not confirmed',
+        'يرجى تأكيد البريد الإلكتروني أولاً'
+      ];
+      
+      if (unconfirmedEmailMessages.some(msg => errorMessage.includes(msg))) {
+        console.log('Detected unconfirmed email error');
+        return { 
+          success: false, 
+          error: errorMessage,
           isUnconfirmedEmail: true,
           email: email
         };
       }
-      return { success: false, error: errorMessage };
+      
+      // Pass through the exact error message
+      return { 
+        success: false, 
+        error: errorMessage
+      };
     }
   },
 };
