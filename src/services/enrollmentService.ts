@@ -3,11 +3,12 @@ import { BASE_URL } from '../apiConfig';
 
 export const checkEnrollment = async (studentId: string, courseId: string): Promise<boolean> => {
   try {
-    const response = await axios.get(
+    const response = await axios.get<boolean>(
       `${BASE_URL}/AdminStudent/IsEnrolled?studentId=${studentId}&courseId=${courseId}`,
       {
         headers: {
-          'accept': '*/*'
+          'accept': '*/*',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         }
       }
     );
