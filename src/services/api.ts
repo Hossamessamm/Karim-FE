@@ -236,16 +236,6 @@ export const authService = {
       // Check if the error is in response.data.message
       const errorMessage = error.response?.data?.message || 'Login failed';
       
-      // If email is unconfirmed, return special error object
-      if (errorMessage === 'Please confirm your email first.') {
-        return { 
-          success: false, 
-          error: errorMessage,
-          isUnconfirmedEmail: true,
-          email: email
-        };
-      }
-      
       // Check if the regular error message contains the max devices text
       if (errorMessage.includes(maxDevicesErrorMessage)) {
         return {

@@ -22,9 +22,9 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Handle verification success state
+  // Handle verification and registration success state
   useEffect(() => {
-    if (location.state?.verificationSuccess) {
+    if (location.state?.verificationSuccess || location.state?.registrationSuccess) {
       setSuccessMessage(location.state.message);
       if (location.state.email) {
         setEmail(location.state.email);
@@ -46,8 +46,6 @@ const Login: React.FC = () => {
       if (result.success) {
         // Always navigate to home page after successful login
         navigate('/', { replace: true });
-      } else if (result.isUnconfirmedEmail) {
-        navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
       } else if (result.isMaxDevicesError) {
         // Handle max devices error using the flag from the API service
         setIsMaxDevicesError(true);

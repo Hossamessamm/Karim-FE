@@ -16,7 +16,6 @@ import ForgotPassword from './pages/ForgotPassword';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import ResetPassword from './components/auth/ResetPassword';
-import OtpVerification from './components/auth/OtpVerification';
 import Profile from './components/user/Profile';
 import EnrolledCourses from './components/user/EnrolledCourses';
 import CourseDetail from './components/course/CourseDetail';
@@ -38,7 +37,6 @@ function App() {
                     <Route path="/login" element={<Login />} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/verify-otp" element={<OtpVerification />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     
                     {/* Protected Routes */}

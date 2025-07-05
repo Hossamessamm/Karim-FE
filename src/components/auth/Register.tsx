@@ -44,8 +44,14 @@ const Register: React.FC = () => {
       const result = await register(name, email, password, confirmPassword, phoneNumber, academicGrade);
       
       if (result.success) {
-        // Navigate to OTP verification without any authentication state
-        navigate(`/verify-otp?email=${encodeURIComponent(email)}`);
+        // Navigate directly to login page with success message
+        navigate('/login', {
+          state: {
+            registrationSuccess: true,
+            message: 'تم إنشاء حسابك بنجاح! يمكنك الآن تسجيل الدخول.',
+            email: email
+          }
+        });
       } else {
         setError(result.error || 'فشل إنشاء الحساب. الرجاء المحاولة مرة أخرى.');
       }
