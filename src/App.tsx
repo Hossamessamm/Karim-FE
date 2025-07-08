@@ -51,11 +51,6 @@ function App() {
                       </ProtectedRoute>
                     } />
                     <Route path="/courses/:id" element={<CourseDetail />} />
-                    <Route path="/course-player/:courseId" element={
-                      <ProtectedRoute>
-                        <CourseViewer />
-                      </ProtectedRoute>
-                    } />
                     {/* Test Route */}
                     <Route path="/test-refresh-token" element={
                       <ProtectedRoute>
@@ -63,6 +58,12 @@ function App() {
                       </ProtectedRoute>
                     } />
                   </Route>
+                  {/* CourseViewer without MainLayout (no Navbar/Footer) */}
+                  <Route path="/course-player/:courseId" element={
+                    <ProtectedRoute>
+                      <CourseViewer />
+                    </ProtectedRoute>
+                  } />
                 </Routes>
               </div>
             </CourseProvider>

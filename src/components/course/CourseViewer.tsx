@@ -9,6 +9,8 @@ import {
 } from '../../hooks/useCourseApi';
 import ReactPlayer from 'react-player';
 import { QuizContent } from '../quiz/QuizContent';
+import axios from 'axios';
+import { BASE_URL } from '../../apiConfig';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -145,12 +147,25 @@ const isArabicText = (text: string): boolean => {
   return arabicPattern.test(text);
 };
 
+// Add this helper to clear course details cache
+const clearCourseDetailsCache = (courseId: string) => {
+  try {
+    // The cache key must match the one used in useCourseApi
+    const params = { courseid: courseId };
+    const key = '/api/Course/tree-with-progress?' + new URLSearchParams(params as any).toString();
+    if (window.responseCache && typeof window.responseCache.delete === 'function') {
+      window.responseCache.delete(key);
+    }
+    // If responseCache is not global, you may need to expose a cache clearing function from useCourseApi
+  } catch (e) { /* ignore */ }
+};
+
 const CourseViewer: React.FC = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { fetchCourseDetails, isLoading, fetchLessonDetails } = useCourseApi();
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false); // Sidebar collapsed by default
   const [activeUnit, setActiveUnit] = useState<number | null>(null);
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [collapsedUnits, setCollapsedUnits] = useState<string[]>([]);
@@ -174,6 +189,7 @@ const CourseViewer: React.FC = () => {
   const controlsTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [showBravo, setShowBravo] = useState(false);
 
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -267,44 +283,76 @@ const CourseViewer: React.FC = () => {
   };
 
   // Helper function to find and load the first available lesson
-  const findAndLoadFirstLesson = async (courseData: CourseDetails) => {
-    console.log('Finding first lesson in course data:', courseData);
+ const findAndLoadFirstLesson = async (courseData: CourseDetails) => {
+  const allLessons: { unitIndex: number; lessonIndex: number; lesson: Lesson }[] = [];
 
-    for (let unitIndex = 0; unitIndex < courseData.units.length; unitIndex++) {
-      const unit = courseData.units[unitIndex];
-      console.log(`Checking unit ${unitIndex}:`, unit);
+  // Flatten all lessons with their indices
+  courseData.units.forEach((unit, unitIndex) => {
+    unit.lessons.forEach((lesson, lessonIndex) => {
+      allLessons.push({ unitIndex, lessonIndex, lesson });
+    });
+  });
 
-      if (unit.lessons && unit.lessons.length > 0) {
-        // Found a unit with lessons
-        console.log(`Found lessons in unit ${unitIndex}:`, unit.lessons);
-        
-        // Find first lesson with content
-        for (let lessonIndex = 0; lessonIndex < unit.lessons.length; lessonIndex++) {
-          const lesson = unit.lessons[lessonIndex];
-          console.log(`Checking lesson ${lessonIndex}:`, lesson);
-          
-          if (lesson.type === 'Video' || lesson.type === 'Quiz') {
-            console.log(`Loading lesson ${lessonIndex} from unit ${unitIndex}`);
-            setActiveUnit(unitIndex);
-            setActiveLesson(lessonIndex);
-            setSelectedLesson(lesson);
-            loadLessonDetails(lesson.id);
-            
-            // Update URL parameters
-            searchParams.set('unit', unitIndex.toString());
-            searchParams.set('lesson', lessonIndex.toString());
-            setSearchParams(searchParams);
-            return;
-          }
-        }
+  // Find the last completed lesson (video or quiz)
+  let lastCompletedIdx = -1;
+  for (let i = 0; i < allLessons.length; i++) {
+    const { lesson } = allLessons[i];
+    if ((lesson.type === 'Video' && lesson.isCompleted) || (lesson.type === 'Quiz' && lesson.isQuizSubmitted)) {
+      lastCompletedIdx = i;
+    }
+  }
+
+  // Try to load the next lesson after the last completed
+  const nextIndex = lastCompletedIdx + 1;
+  if (nextIndex < allLessons.length) {
+    const { unitIndex, lessonIndex, lesson } = allLessons[nextIndex];
+
+    // Check for locking conditions
+    let lock = false;
+    if (lessonIndex > 0) {
+      const prevLesson = courseData.units[unitIndex].lessons[lessonIndex - 1];
+      if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
+        lock = true;
       }
     }
-    
-    // No lessons found in any unit
-    console.error('No valid lessons found in any unit');
-    setError('لا توجد دروس متاحة في هذه الدورة حالياً');
-  };
-  //
+
+    if (!lock) {
+      setActiveUnit(unitIndex);
+      setActiveLesson(lessonIndex);
+      setSelectedLesson(lesson);
+      await loadLessonDetails(lesson.id);
+      navigate(`/course-player/${courseId}?unit=${unitIndex}&lesson=${lessonIndex}`, { replace: true });
+      return;
+    }
+  }
+
+  // Fallback: first available unlocked, not completed lesson
+  for (let i = 0; i < allLessons.length; i++) {
+    const { unitIndex, lessonIndex, lesson } = allLessons[i];
+    let lock = false;
+    if (lessonIndex > 0) {
+      const prevLesson = courseData.units[unitIndex].lessons[lessonIndex - 1];
+      if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
+        lock = true;
+      }
+    }
+
+    if (
+      !lock &&
+      ((lesson.type === 'Video' && !lesson.isCompleted) || (lesson.type === 'Quiz' && !lesson.isQuizSubmitted))
+    ) {
+      setActiveUnit(unitIndex);
+      setActiveLesson(lessonIndex);
+      setSelectedLesson(lesson);
+      await loadLessonDetails(lesson.id);
+      navigate(`/course-player/${courseId}?unit=${unitIndex}&lesson=${lessonIndex}`, { replace: true });
+      return;
+    }
+  }
+
+  // Nothing available
+  setError('لا توجد دروس متاحة في هذه الدورة حالياً');
+};
 
   // Separate function to load lesson details
   const loadLessonDetails = async (lessonId: number) => {
@@ -671,6 +719,46 @@ const CourseViewer: React.FC = () => {
 
   const hasNextLesson = activeLesson < currentUnit.lessons.length - 1 || activeUnit < courseDetails.units.length - 1;
 
+  const markLessonAsCompleted = async (lessonId: number) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await axios.post(
+        `${BASE_URL}api/Lesson/complete`,
+        lessonId,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const data = response.data as { success: boolean; message: string };
+      if (data.success) {
+        if (selectedLesson && selectedLesson.id === lessonId && selectedLesson.type === 'Video') {
+          setSelectedLesson({ ...selectedLesson, isCompleted: true });
+        }
+        // Refetch course details to update curriculum (force refresh)
+        if (courseId) {
+          const updated = await fetchCourseDetails(courseId, true);
+          if (updated?.success) setCourseDetails(updated.data);
+        }
+        setShowBravo(true);
+        setTimeout(async () => {
+          setShowBravo(false);
+          if (hasNextLesson) {
+            await goToNextLesson();
+          } else {
+            window.location.reload();
+          }
+        }, 2000);
+      } else {
+        alert(data.message || 'حدث خطأ أثناء حفظ التقدم');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'حدث خطأ أثناء حفظ التقدم');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top Navigation Bar */}
@@ -797,54 +885,72 @@ const CourseViewer: React.FC = () => {
                   </button>
                   
                   <div className={`space-y-1 mt-1 ${collapsedUnits.includes(unit.id.toString()) ? 'hidden' : ''}`}>
-                    {unit.lessons.map((lesson, lessonIndex) => (
-                      <button
-                        key={lesson.id}
-                        className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
-                          ${activeUnit === unitIndex && activeLesson === lessonIndex 
-                            ? 'bg-blue-50 text-blue-700' 
-                            : 'hover:bg-slate-50 text-slate-700'}`}
-                        onClick={() => handleLessonClick(unitIndex, lessonIndex)}
-                      >
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center
-                          ${activeUnit === unitIndex && activeLesson === lessonIndex 
-                            ? 'bg-blue-100' 
-                            : 'bg-slate-100'}`}
-                        >
-                            {completedLessons.includes(lesson.id.toString()) ? (
-                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                          ) : lesson.type === 'Video' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                            </svg>
-                            ) : (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                            </svg>
-                            )}
-                          </div>
-                        <div className="flex-1 text-left">
-                          <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className={activeUnit === unitIndex && activeLesson === lessonIndex 
-                              ? 'text-blue-600' 
-                              : 'text-slate-500'}>
-                              {lesson.type === 'Video' ? 'Video Lesson' : 'Quiz'}
-                            </span>
-                            {completedLessons.includes(lesson.id.toString()) && (
-                              <>
-                                <span className="text-slate-300">•</span>
-                                <span className="text-green-600">Completed</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                    ))}
+                    {(() => {
+                      let lock = false;
+                      return unit.lessons.map((lesson, lessonIndex) => {
+                        // If previous lesson is a quiz and not submitted, lock this and all next lessons
+                        if (lessonIndex > 0) {
+                          const prevLesson = unit.lessons[lessonIndex - 1];
+                          if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
+                            lock = true;
+                          }
+                        }
+                        // If this lesson is a quiz and not submitted, lock all after it
+                        if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
+                          // The quiz itself is not locked, but next lessons will be
+                        }
+                        const isLocked = lock && !(activeUnit === unitIndex && activeLesson === lessonIndex);
+                        return (
+                          <button
+                            key={lesson.id}
+                            className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
+                              ${activeUnit === unitIndex && activeLesson === lessonIndex 
+                                ? 'bg-blue-50 text-blue-700' 
+                                : isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 text-slate-700'}`}
+                            onClick={() => !isLocked && handleLessonClick(unitIndex, lessonIndex)}
+                            disabled={isLocked}
+                          >
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center
+                              ${activeUnit === unitIndex && activeLesson === lessonIndex 
+                                ? 'bg-blue-100' 
+                                : 'bg-slate-100'}`}
+                            >
+                                {lesson.type === 'Video' && lesson.isCompleted ? (
+                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                              ) : lesson.type === 'Video' ? (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                </svg>
+                                ) : (
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                </svg>
+                                )}
+                              </div>
+                            <div className="flex-1 text-left">
+                              <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className={activeUnit === unitIndex && activeLesson === lessonIndex 
+                                  ? 'text-blue-600' 
+                                  : 'text-slate-500'}>
+                                  {lesson.type === 'Video' ? 'Video Lesson' : 'Quiz'}
+                                </span>
+                                {completedLessons.includes(lesson.id.toString()) && (
+                                  <>
+                                    <span className="text-slate-300">•</span>
+                                    <span className="text-green-600">Completed</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               ))}
@@ -1062,6 +1168,17 @@ const CourseViewer: React.FC = () => {
                       </div>
                     </div>
 
+                    {selectedLesson.type === 'Video' && !selectedLesson.isCompleted && (
+                      <div className="mt-4 flex justify-center">
+                        <button
+                          onClick={() => markLessonAsCompleted(selectedLesson.id)}
+                          className="px-6 py-3 bg-green-600 text-white rounded-lg font-bold shadow hover:bg-green-700 transition"
+                        >
+                          أتفرجت على المحاضرة
+                        </button>
+                      </div>
+                    )}
+
                     {/* Make attachments section responsive */}
                     {lessonDetails.attachmentUrl && lessonDetails.attachmentTitle && (
                       <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300">
@@ -1123,6 +1240,13 @@ const CourseViewer: React.FC = () => {
           className="fixed inset-0 bg-black/50 z-30 sm:hidden"
           onClick={toggleMenu}
         />
+      )}
+      {showBravo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-lg px-10 py-8 text-3xl font-bold text-green-600 animate-bounce">
+            برافوووو 🎉
+          </div>
+        </div>
       )}
     </div>
   );

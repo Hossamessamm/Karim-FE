@@ -35,17 +35,19 @@ const LessonItem: React.FC<{
   return (
     <div 
       onClick={() => onSelect(lesson)}
-      className="flex items-center gap-4 p-4 border-t hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+      className="flex items-center gap-4 p-4 border-t border-slate-100 hover:bg-primary/5 transition-all duration-200 cursor-pointer group relative"
+      style={{ background: '#fff' }}
     >
-      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+      {/* Accent dot removed */}
+      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
         <span className="text-primary font-semibold">
           {(unitIndex + 1).toString().padStart(2, '0')}.
           {(lessonIndex + 1).toString().padStart(2, '0')}
         </span>
       </div>
       <div className="flex-grow">
-        <h4 className="font-medium">{lesson.lessonName}</h4>
-        <p className="text-sm text-gray-500">{lesson.type}</p>
+        <h4 className="font-medium text-slate-800 group-hover:text-primary transition-colors">{lesson.lessonName}</h4>
+        <p className="text-xs text-gray-400">{lesson.type}</p>
       </div>
       <div className="text-primary">
         <LessonIcon type={lesson.type} />
@@ -62,35 +64,40 @@ const UnitAccordion: React.FC<{
   onSelectLesson: (lesson: Lesson) => void;
 }> = ({ unit, unitIndex, isExpanded, onToggle, onSelectLesson }) => {
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-2xl overflow-hidden shadow-md bg-white transition-shadow duration-300 hover:shadow-lg relative">
+      {/* Accent bar */}
+      <div className="absolute top-0 right-0 h-full w-2 bg-gradient-to-b from-primary to-teal-400"></div>
       <div 
         onClick={onToggle}
-        className="flex items-center justify-between p-4 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors duration-200"
+        className="flex items-center justify-between p-6 bg-gray-50 cursor-pointer hover:bg-primary/10 transition-colors duration-200 group"
       >
-        <div>
-          <h3 className="text-xl font-semibold">{unit.unitName}</h3>
-          <p className="text-gray-600">{unit.lessons.length} دروس</p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-lg shadow-sm">
+            {unitIndex + 1}
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-slate-800 group-hover:text-primary transition-colors">{unit.unitName}</h3>
+            <p className="text-gray-500 text-sm">{unit.lessons.length} دروس</p>
+          </div>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">
-            {unit.lessons.length} {unit.lessons.length === 1 ? 'lesson' : 'lessons'}
+          <span className="text-xs text-gray-400">
+            {unit.lessons.length} {unit.lessons.length === 1 ? 'درس' : 'دروس'}
           </span>
-          <svg 
-            className={`w-6 h-6 transform transition-transform duration-200 ${
-              isExpanded ? 'rotate-180' : ''
-            }`} 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <span className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-200 ${isExpanded ? 'bg-primary/10 rotate-180' : 'bg-gray-200'}`}>
+            <svg 
+              className="w-6 h-6 text-primary transition-transform duration-200" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </span>
         </div>
       </div>
-      
-      <div className={`transition-all duration-300 ${
-        isExpanded ? 'block' : 'hidden'
-      }`}>
+      <div className={`transition-all duration-300 ${isExpanded ? 'block' : 'hidden'}`}
+        style={{ background: '#f9fafb' }}>
         {unit.lessons.map((lesson, lessonIndex) => (
           <LessonItem
             key={lesson.id}
@@ -106,7 +113,7 @@ const UnitAccordion: React.FC<{
 };
 
 export const Curriculum: React.FC<CurriculumProps> = ({ units, courseId, onLessonSelect }) => {
-  const [expandedUnits, setExpandedUnits] = useState<number[]>([0]); // First unit expanded by default
+  const [expandedUnits, setExpandedUnits] = useState<number[]>([]); // All units collapsed by default
 
   const toggleUnit = (unitId: number) => {
     setExpandedUnits(prev => 

@@ -32,12 +32,17 @@ export interface BaseLesson {
   type: 'Video' | 'Quiz';
 }
 
+// Update lesson interfaces to include progress fields
 export interface VideoLesson extends BaseLesson {
   type: 'Video';
+  isCompleted: boolean | null;
+  isQuizSubmitted?: null;
 }
 
 export interface QuizLesson extends BaseLesson {
   type: 'Quiz';
+  isCompleted?: null;
+  isQuizSubmitted: boolean | null;
 }
 
 export type Lesson = VideoLesson | QuizLesson;
@@ -519,7 +524,7 @@ export const useCourseApi = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await axios.get(
+      const response = await axios.get<ApiResponse<CourseListData>>(
         `${BASE_URL}/Student/Student-Enrolled-Courses`,
         {
           params: {
@@ -533,11 +538,11 @@ export const useCourseApi = () => {
         }
       );
 
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch enrolled courses');
+      const apiResponse = response.data as ApiResponse<CourseListData>;
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.message || 'Failed to fetch enrolled courses');
       }
-
-      return response.data;
+      return apiResponse;
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch enrolled courses';
       setError(errorMessage);
@@ -547,46 +552,49 @@ export const useCourseApi = () => {
     }
   };
 
-  const fetchCourseDetails = useCallback(async (courseId: string) => {
+  const fetchCourseDetails = useCallback(async (courseId: string, forceRefresh = false) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const params = { courseid: courseId };
-      const key = getRequestKey('/Course/tree', params);
-      
-      // Check cache first
-      const cached = getCachedResponse(key);
-      if (cached) {
-        console.log(`Using cached course details for ${key}`);
-        setIsLoading(false);
-        return cached;
+      const key = getRequestKey('/api/Course/tree-with-progress', params);
+      // Check cache first, unless forceRefresh is true
+      if (!forceRefresh) {
+        const cached = getCachedResponse(key);
+        if (cached) {
+          console.log(`Using cached course details for ${key}`);
+          setIsLoading(false);
+          return cached;
+        }
       }
-      
+      const token = getAuthToken();
       const response = await executeRequest<ApiResponse<CourseDetails>>(
         key,
         async () => {
-          const apiResponse = await api.get<ApiResponse<CourseDetails>>('/Course/tree', { params });
+          const apiResponse = await axios.get<ApiResponse<CourseDetails>>(
+            `${BASE_URL}api/Course/tree-with-progress`,
+            {
+              params,
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
           return apiResponse.data;
         }
       );
-      
       // Cache successful response
       if (response.success) {
         setCachedResponse(key, response);
       }
-      
       return response;
     } catch (err: any) {
       console.error('Error fetching course details:', err);
       let errorMessage = 'Failed to fetch course details';
-      
       if (err.response?.status === 404) {
         errorMessage = 'Course details not found.';
       } else if (err instanceof Error) {
         errorMessage = err.message;
       }
-      
       setError(errorMessage);
       return null;
     } finally {

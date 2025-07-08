@@ -81,7 +81,7 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Logo and Description - Centered */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">المُــبــيــن</h2>
+          <h2 className="text-2xl font-bold mb-2">منصة م.محمود الشيخ</h2>
           <p className="text-white/80 max-w-2xl mx-auto leading-relaxed text-sm">
             نقدم تعليمًا عالي الجودة لطلاب جميع المراحل.
             تعلم بالسرعة التي تناسبك مع دوراتنا التي يقودها الخبراء.
@@ -131,7 +131,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright - With Border */}
         <div className="pt-4 border-t border-white/10 text-center">
-          <p className="text-white/70 text-sm">© {new Date().getFullYear()} المُــبــيــن. جميع الحقوق محفوظة.</p>
+          <p className="text-white/70 text-sm">© {new Date().getFullYear()} منصة م.محمود الشيخ. جميع الحقوق محفوظة.</p>
         </div>
       </div>
     </footer>

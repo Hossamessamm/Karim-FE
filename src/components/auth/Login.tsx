@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import teacherImage from '../../assets/images/teachers/omar-elkholy.png';
+import teacherImage from '../../assets/images/teachers/omar-elkholy.jpg';
 import ApiErrorAlert from '../common/ApiErrorAlert';
 
 // Define the login result type based on the AuthContext
@@ -103,8 +103,8 @@ const Login: React.FC = () => {
               decoding="async"
             />
             <div className="absolute bottom-0 right-0 left-0 p-8 z-20 bg-gradient-to-t from-blue-900/90 to-transparent">
-              <h2 className="text-3xl font-bold mb-2 text-white">أ/ أبراهيم مجدي</h2>
-              <p className="text-blue-100 text-lg">مدرس اللغة العربية</p>
+              <h2 className="text-3xl font-bold mb-2 text-white">م. محمود الشيخ</h2>
+              <p className="text-blue-100 text-lg">مدرس مادة التاريخ</p>
             </div>
           </div>
         </div>

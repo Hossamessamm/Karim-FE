@@ -22,7 +22,7 @@ const About: React.FC = () => {
                       الأستاذ إبراهيم مجدي
                     </h1>
                     <div className="flex justify-center">
-                      <span className="text-lg text-blue-600 font-medium font-arabic">المُــبــيــن</span>
+                      <span className="text-lg text-blue-600 font-medium font-arabic">منصة م.محمود الشيخ</span>
                     </div>
                   </div>
                 </div>

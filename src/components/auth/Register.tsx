@@ -10,6 +10,7 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [parentPhoneNumber, setParentPhoneNumber] = useState(''); // Parent phone
   const [grade, setGrade] = useState('');
   const [error, setError] = useState('');
   const { register, isLoading } = useAuth();
@@ -31,6 +32,11 @@ const Register: React.FC = () => {
 
     if (!phoneNumber) {
       setError('رقم الهاتف مطلوب');
+      return;
+    }
+
+    if (!parentPhoneNumber) {
+      setError('رقم هاتف ولي الأمر مطلوب');
       return;
     }
 
@@ -98,7 +104,7 @@ const Register: React.FC = () => {
             <div className="absolute bottom-0 right-0 left-0 p-8 z-20 bg-gradient-to-t from-blue-900 to-transparent">
               <div className="transform transition-all duration-300 hover:translate-y-[-5px]">
                 <h2 className="text-2xl md:text-3xl font-bold mb-2 text-white">
-                  أ/ إبراهيم مجدي
+                  م. محمود الشيخ
                 </h2>
                 <p className="text-blue-50 text-base md:text-lg opacity-90">
                   انضم إلى مجتمع تعلم اللغة العربية
@@ -171,6 +177,24 @@ const Register: React.FC = () => {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
                       placeholder="أدخل رقم هاتفك"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="parentPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
+                    ادخل رقم هاتف ولي الامر
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="parentPhoneNumber"
+                      name="parentPhoneNumber"
+                      type="tel"
+                      required
+                      value={parentPhoneNumber}
+                      onChange={(e) => setParentPhoneNumber(e.target.value)}
+                      className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
+                      placeholder="ادخل رقم هاتف ولي الامر"
                     />
                   </div>
                 </div>
