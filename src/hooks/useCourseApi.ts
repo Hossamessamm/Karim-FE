@@ -602,6 +602,56 @@ export const useCourseApi = () => {
     }
   }, []);
 
+  const fetchCourseDetailsWithoutProgress = useCallback(async (courseId: string, forceRefresh = false) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const params = { courseid: courseId };
+      const key = getRequestKey('/api/Course/tree', params);
+      // Check cache first, unless forceRefresh is true
+      if (!forceRefresh) {
+        const cached = getCachedResponse(key);
+        if (cached) {
+          console.log(`Using cached course details (without progress) for ${key}`);
+          setIsLoading(false);
+          return cached;
+        }
+      }
+      const token = getAuthToken();
+      const response = await executeRequest<ApiResponse<CourseDetails>>(
+        key,
+        async () => {
+          const apiResponse = await axios.get<ApiResponse<CourseDetails>>(
+            `${BASE_URL}api/Course/tree`,
+            {
+              params,
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+          return apiResponse.data;
+        }
+      );
+      // Cache successful response
+      if (response.success) {
+        setCachedResponse(key, response);
+      }
+      return response;
+    } catch (err: any) {
+      console.error('Error fetching course details (without progress):', err);
+      let errorMessage = 'Failed to fetch course details';
+      if (err.response?.status === 404) {
+        errorMessage = 'Course details not found.';
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const fetchLessonDetails = useCallback(async (lessonId: number) => {
     setIsLoading(true);
     setError(null);
@@ -707,6 +757,7 @@ export const useCourseApi = () => {
     getCourses,
     fetchEnrolledCourses,
     fetchCourseDetails,
+    fetchCourseDetailsWithoutProgress,
     fetchLessonDetails,
     isLoading,
     error,

@@ -153,10 +153,8 @@ const clearCourseDetailsCache = (courseId: string) => {
     // The cache key must match the one used in useCourseApi
     const params = { courseid: courseId };
     const key = '/api/Course/tree-with-progress?' + new URLSearchParams(params as any).toString();
-    if (window.responseCache && typeof window.responseCache.delete === 'function') {
-      window.responseCache.delete(key);
-    }
-    // If responseCache is not global, you may need to expose a cache clearing function from useCourseApi
+    // Note: Cache clearing is handled internally by useCourseApi
+    // This function is kept for potential future use
   } catch (e) { /* ignore */ }
 };
 

@@ -10,7 +10,7 @@ const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
-  const { fetchCourseDetails, isLoading, error } = useCourseApi();
+  const { fetchCourseDetailsWithoutProgress, isLoading, error } = useCourseApi();
   const [selectedSection, setSelectedSection] = useState('curriculum');
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
   const [showEnrollmentPopup, setShowEnrollmentPopup] = useState(false);
@@ -20,7 +20,7 @@ const CourseDetail: React.FC = () => {
   useEffect(() => {
     const loadCourseDetails = async () => {
       if (id) {
-        const response = await fetchCourseDetails(id);
+        const response = await fetchCourseDetailsWithoutProgress(id);
         if (response?.success) {
           setCourseDetails(response.data);
         }
@@ -28,7 +28,7 @@ const CourseDetail: React.FC = () => {
     };
 
     loadCourseDetails();
-  }, [id, fetchCourseDetails]);
+  }, [id, fetchCourseDetailsWithoutProgress]);
 
   useEffect(() => {
     const checkUserEnrollment = async () => {
