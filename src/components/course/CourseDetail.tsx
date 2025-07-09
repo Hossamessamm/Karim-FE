@@ -3,19 +3,41 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCourseApi, CourseDetails } from '../../hooks/useCourseApi';
 import { Curriculum } from './Curriculum';
-import EnrollmentPopup from './EnrollmentPopup';
 import { checkEnrollment } from '../../services/enrollmentService';
+import axios from 'axios';
+
+interface ContactInfo {
+  id: number;
+  whatsApp_Number: string;
+  facebook_Page: string;
+  youTube_Channel: string;
+  tiktokChannel: string;
+}
+
+interface ContactApiResponse {
+  success: boolean;
+  message: string;
+  data: ContactInfo[];
+}
 
 const CourseDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
-  const { fetchCourseDetailsWithoutProgress, isLoading, error } = useCourseApi();
+  const { fetchCourseDetailsWithoutProgress, isLoading, error, enrollInCourse } = useCourseApi();
   const [selectedSection, setSelectedSection] = useState('curriculum');
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
-  const [showEnrollmentPopup, setShowEnrollmentPopup] = useState(false);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isCheckingEnrollment, setIsCheckingEnrollment] = useState(true);
+  
+  // Enrollment states
+  const [showEnrollmentOptions, setShowEnrollmentOptions] = useState(true); // Show options by default
+  const [showCodeInput, setShowCodeInput] = useState(true); // Show code input by default
+  const [code, setCode] = useState('');
+  const [enrollmentError, setEnrollmentError] = useState('');
+  const [enrollmentSuccess, setEnrollmentSuccess] = useState(false);
+  const [isEnrolling, setIsEnrolling] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   
   useEffect(() => {
     const loadCourseDetails = async () => {
@@ -45,16 +67,91 @@ const CourseDetail: React.FC = () => {
     checkUserEnrollment();
   }, [id, currentUser?.id]);
 
+  useEffect(() => {
+    const fetchWhatsAppNumber = async () => {
+      try {
+        const response = await axios.get<ContactApiResponse>('https://api.ibrahim-magdy.com/api/Contact/getAll');
+        if (response.data.success && response.data.data.length > 0) {
+          setWhatsappNumber(response.data.data[0].whatsApp_Number);
+        }
+      } catch (error) {
+        console.error('Error fetching WhatsApp number:', error);
+      }
+    };
+
+    fetchWhatsAppNumber();
+  }, []);
+
   const handleEnroll = () => {
     if (!isAuthenticated) {
       navigate('/login', { state: { redirectTo: `/courses/${id}` } });
       return;
     }
-    setShowEnrollmentPopup(true);
+    setShowEnrollmentOptions(true);
   };
 
   const handleContinue = () => {
     navigate(`/course-player/${id}`);
+  };
+
+  const handleWhatsAppContact = () => {
+    if (whatsappNumber) {
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=مرحباً، أريد الاستفسار عن التسجيل في الدورة`;
+      window.open(whatsappUrl, '_blank');
+    }
+  };
+
+  const handleCodeSubmit = async () => {
+    if (!code.trim()) {
+      setEnrollmentError('يرجى إدخال كود التسجيل');
+      setEnrollmentSuccess(false);
+      return;
+    }
+
+    if (!isAuthenticated) {
+      setEnrollmentError('يرجى تسجيل الدخول للتسجيل في هذه الدورة');
+      setEnrollmentSuccess(false);
+      return;
+    }
+
+    try {
+      setIsEnrolling(true);
+      setEnrollmentError('');
+      setEnrollmentSuccess(false);
+      const response = await enrollInCourse(id || '', code);
+      
+      if (response.success && response.message !== 'Code not found.') {
+        setEnrollmentSuccess(true);
+        setEnrollmentError('');
+        // Refresh enrollment status
+        if (id && currentUser?.id) {
+          const enrolled = await checkEnrollment(currentUser.id, id);
+          setIsEnrolled(enrolled);
+        }
+      } else {
+        setEnrollmentSuccess(false);
+        setEnrollmentError(response.message || 'كود التسجيل غير صحيح');
+      }
+    } catch (err) {
+      setEnrollmentSuccess(false);
+      setEnrollmentError('حدث خطأ أثناء التسجيل في الدورة');
+    } finally {
+      setIsEnrolling(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !isEnrolling) {
+      handleCodeSubmit();
+    }
+  };
+
+  const resetEnrollmentStates = () => {
+    setShowEnrollmentOptions(false);
+    setShowCodeInput(false);
+    setCode('');
+    setEnrollmentError('');
+    setEnrollmentSuccess(false);
   };
 
   const tabs = [
@@ -105,10 +202,13 @@ const CourseDetail: React.FC = () => {
               </div>
               <h1 className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">{courseDetails.courseName}</h1>
               <p className="text-xl text-slate-300 mb-8">{courseDetails.description}</p>
+              
+              {/* Enrollment Section */}
               <div className="flex flex-col sm:flex-row justify-center md:justify-start space-y-4 sm:space-y-0 sm:space-x-4 rtl:space-x-reverse items-center">
                 <div className="px-6 py-3 bg-teal-500/20 rounded-full text-2xl font-bold">
                   {courseDetails.price.toFixed(2)} جنيه
                 </div>
+                
                 {isCheckingEnrollment ? (
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
                 ) : isEnrolled ? (
@@ -119,14 +219,70 @@ const CourseDetail: React.FC = () => {
                     استمرار
                   </button>
                 ) : (
-                  <button
-                    onClick={handleEnroll}
-                    className="px-8 py-4 text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-indigo-500/25"
-                  >
-                    اشترك الآن
-                  </button>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {!showEnrollmentOptions ? (
+                      <button
+                        onClick={handleEnroll}
+                        className="px-8 py-4 text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-indigo-500/25"
+                      >
+                        اشترك الآن
+                      </button>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        {/* <button
+                          onClick={() => setShowCodeInput(true)}
+                          className="px-6 py-3 text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 transition-all duration-300 shadow-lg"
+                        >
+                          لدي كود تسجيل
+                        </button> */}
+                        <button
+                          onClick={handleWhatsAppContact}
+                          className="px-6 py-3 text-sm font-medium rounded-md text-white bg-green-500 hover:bg-green-600 transition-all duration-300 shadow-lg flex items-center gap-2"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                          </svg>
+                          التواصل مع الإشراف
+                        </button>
+                       
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
+
+              {/* Code Input Section */}
+              {showCodeInput && (
+                <div className="mt-6 p-4 bg-white/10 rounded-xl backdrop-blur-sm">
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="أدخل كود التسجيل"
+                      className={`flex-1 px-4 py-3 border-2 rounded-xl focus:outline-none transition-colors duration-200 text-gray-900
+                        ${enrollmentError ? 'border-red-300 bg-red-50' : 'border-gray-200 focus:border-primary'}
+                      `}
+                      disabled={isEnrolling}
+                    />
+                    <button
+                      onClick={handleCodeSubmit}
+                      disabled={isEnrolling}
+                      className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all duration-300 disabled:opacity-50"
+                    >
+                      {isEnrolling ? 'جاري التسجيل...' : 'تسجيل'}
+                    </button>
+
+                  </div>
+                  {enrollmentError && (
+                    <div className="mt-2 text-red-300 text-sm text-center">{enrollmentError}</div>
+                  )}
+                  {enrollmentSuccess && (
+                    <div className="mt-2 text-green-300 text-sm text-center">تم التسجيل بنجاح!</div>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className="mt-10 md:mt-0">
@@ -212,13 +368,6 @@ const CourseDetail: React.FC = () => {
           </div>
         </div>
       </div>
-      
-      {/* Enrollment Popup */}
-      <EnrollmentPopup
-        isOpen={showEnrollmentPopup}
-        onClose={() => setShowEnrollmentPopup(false)}
-        courseId={id || ''}
-      />
 
       {/* Kadence theme styles */}
       <style>{`
