@@ -212,7 +212,9 @@ const CourseList: React.FC = () => {
       try {
         const response = await getCourses(selectedGrade, currentPage, ITEMS_PER_PAGE);
         if (response?.success && response?.data) {
-          setCourses(response.data.courses || []);
+          // Reverse the courses array to show newest first (from bottom to top)
+          const reversedCourses = [...(response.data.courses || [])].reverse();
+          setCourses(reversedCourses);
           setTotalPages(response.data.totalPages || 1);
           setTotalCount(response.data.totalCount || 0);
         } else {

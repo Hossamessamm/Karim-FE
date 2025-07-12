@@ -1,38 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-
-interface ContactData {
-  id: number;
-  whatsApp_Number: string;
-  facebook_Page: string;
-  youTube_Channel: string;
-  tiktokChannel: string;
-}
+import { useContact } from '../../hooks/useContact';
+import { BookOpen, Home, Users, Star, Sparkles } from 'lucide-react';
 
 const Footer: React.FC = () => {
-  const [contactData, setContactData] = useState<ContactData | null>(null);
-
-  useEffect(() => {
-    const fetchContactData = async () => {
-      try {
-        const response = await fetch('https://api.ibrahim-magdy.com/api/Contact/getAll');
-        const result = await response.json();
-        
-        if (result.success && result.data.length > 0) {
-          setContactData(result.data[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching contact data:', error);
-      }
-    };
-
-    fetchContactData();
-  }, []);
+  const { contactInfo } = useContact();
 
   const renderSocialIcon = (
     type: 'whatsapp' | 'facebook' | 'youtube' | 'tiktok',
     link: string | undefined,
-    hoverColor: string
+    hoverColor: string,
+    bgColor: string
   ) => {
     const icons = {
       whatsapp: (
@@ -57,83 +35,171 @@ const Footer: React.FC = () => {
       )
     };
 
-    const IconWrapper = link ? 'a' as const : 'div' as const;
-    const props = link ? {
-      href: type === 'whatsapp' ? `https://wa.me/${link}` : link,
-      target: "_blank",
-      rel: "noopener noreferrer",
-      className: `text-white hover:${hoverColor} transition-colors transform hover:scale-110`,
-      title: type.charAt(0).toUpperCase() + type.slice(1)
-    } : {
-      className: "text-white/50 cursor-not-allowed",
-      title: `${type.charAt(0).toUpperCase() + type.slice(1)} غير متاح`
-    };
-
     return (
-      <IconWrapper {...props}>
-        {icons[type]}
-      </IconWrapper>
+      <div className="group relative">
+        {link ? (
+          <a
+            href={type === 'whatsapp' ? `https://wa.me/${link}` : link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`relative flex items-center justify-center w-12 h-12 rounded-2xl ${bgColor} text-white transition-all duration-300 transform hover:scale-110 hover:shadow-lg ${hoverColor} backdrop-blur-sm border border-white/20`}
+            title={type.charAt(0).toUpperCase() + type.slice(1)}
+          >
+            {icons[type]}
+            <div className="absolute inset-0 rounded-2xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </a>
+        ) : (
+          <div
+            className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 text-white/50 cursor-not-allowed border border-white/10"
+            title={`${type.charAt(0).toUpperCase() + type.slice(1)} غير متاح`}
+          >
+            {icons[type]}
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
-    <footer className="bg-[#4285f4] text-white py-6" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Logo and Description - Centered */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2">منصة م.محمود الشيخ</h2>
-          <p className="text-white/80 max-w-2xl mx-auto leading-relaxed text-sm">
-            نقدم تعليمًا عالي الجودة لطلاب جميع المراحل.
-            تعلم بالسرعة التي تناسبك مع دوراتنا التي يقودها الخبراء.
-          </p>
-        </div>
+    <footer className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 text-white overflow-hidden" dir="rtl">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute bottom-20 left-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
 
-        {/* Links and Register - Three Columns */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center mb-6">
+      {/* Floating Particles */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(15)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-1 h-1 bg-white/20 rounded-full animate-float"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              animationDuration: `${3 + Math.random() * 4}s`
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-12">
+          {/* Brand Section */}
+          <div className="lg:col-span-2 text-center lg:text-right">
+            <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
+              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
+                <div className="absolute inset-0 rounded-2xl bg-white/10"></div>
+              </div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                منصة م.محمود الشيخ
+              </h2>
+            </div>
+            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
+              نقدم تعليمًا عالي الجودة لطلاب جميع المراحل الدراسية. 
+              تعلم بالسرعة التي تناسبك مع دوراتنا التفاعلية التي يقودها الخبراء.
+            </p>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
+              {[
+                { icon: Users, number: "500+", label: "طالب متفوق" },
+                { icon: BookOpen, number: "98%", label: "نسبة النجاح" },
+                { icon: Star, number: "4.9", label: "تقييم الطلاب" }
+              ].map((stat, index) => (
+                <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
+                  <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-2" />
+                  <div className="text-xl font-bold text-white">{stat.number}</div>
+                  <div className="text-xs text-gray-300">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Quick Links */}
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-3">روابط سريعة</h3>
-            <div className="flex flex-col items-center space-y-2">
-              <Link to="/" className="text-white/80 hover:text-white transition-colors text-sm">
-                الرئيسية
-              </Link>
-              <Link to="/about" className="text-white/80 hover:text-white transition-colors text-sm">
-                عن المنصة
-              </Link>
-              <Link to="/courses" className="text-white/80 hover:text-white transition-colors text-sm">
-                الدورات
-              </Link>
+          <div className="text-center lg:text-right">
+            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2">
+              <Home className="w-5 h-5 text-purple-400" />
+              روابط سريعة
+            </h3>
+            <div className="space-y-4">
+              {[
+                { to: "/", label: "الرئيسية", icon: Home },
+                { to: "/about", label: "عن المنصة", icon: Users },
+                { to: "/courses", label: "الدورات", icon: BookOpen },
+              ].map((link, index) => (
+                <Link
+                  key={index}
+                  to={link.to}
+                  className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1"
+                >
+                  <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
+                  <span className="group-hover:text-white">{link.label}</span>
+                </Link>
+              ))}
             </div>
           </div>
 
-          {/* Contact/Register - Centered */}
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-3">انضم إلينا</h3>
-            <Link 
-              to="/register" 
-              className="inline-block bg-white text-[#4285f4] px-6 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all duration-200 hover:transform hover:scale-105"
-            >
-              سجل الآن
-            </Link>
-          </div>
+          {/* Contact & Social */}
+          <div className="text-center lg:text-right">
+            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2">
+              <Users className="w-5 h-5 text-purple-400" />
+              تواصل معنا
+            </h3>
+            
+            {/* Register Button */}
+            <div className="mb-6">
+              <Link 
+                to="/register" 
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
+              >
+                <Star className="w-5 h-5" />
+                انضم إلينا الآن
+              </Link>
+            </div>
 
-          {/* Social Media Links */}
-          <div className="text-center">
-            <h3 className="text-lg font-semibold mb-3">تواصل معنا</h3>
-            <div className="flex justify-center items-center gap-4">
-              {renderSocialIcon('whatsapp', contactData?.whatsApp_Number, 'text-green-400')}
-              {renderSocialIcon('facebook', contactData?.facebook_Page, 'text-blue-400')}
-              {renderSocialIcon('youtube', contactData?.youTube_Channel, 'text-red-400')}
-              {renderSocialIcon('tiktok', contactData?.tiktokChannel, 'text-gray-300')}
+            {/* Social Media */}
+            <div className="flex justify-center lg:justify-start items-center gap-4">
+              {renderSocialIcon('whatsapp', contactInfo?.whatsApp_Number, 'hover:shadow-green-500/50', 'bg-gradient-to-br from-green-500 to-green-600')}
+              {renderSocialIcon('facebook', contactInfo?.facebook_Page, 'hover:shadow-blue-500/50', 'bg-gradient-to-br from-blue-500 to-blue-600')}
+              {renderSocialIcon('youtube', contactInfo?.youTube_Channel, 'hover:shadow-red-500/50', 'bg-gradient-to-br from-red-500 to-red-600')}
+              {renderSocialIcon('tiktok', contactInfo?.tiktokChannel, 'hover:shadow-gray-500/50', 'bg-gradient-to-br from-gray-600 to-gray-700')}
             </div>
           </div>
         </div>
 
-        {/* Copyright - With Border */}
-        <div className="pt-4 border-t border-white/10 text-center">
-          <p className="text-white/70 text-sm">© {new Date().getFullYear()} منصة م.محمود الشيخ. جميع الحقوق محفوظة.</p>
+        {/* Bottom Section */}
+        <div className="pt-8 border-t border-white/10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div className="text-center lg:text-right">
+              <p className="text-gray-400 text-sm">
+                © {new Date().getFullYear()} منصة م.محمود الشيخ. جميع الحقوق محفوظة.
+              </p>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>متاح الآن</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Custom Animations */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
     </footer>
   );
 };

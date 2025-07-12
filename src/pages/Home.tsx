@@ -3,7 +3,7 @@ import CourseList from '../components/course/CourseList';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import teacherImage from '../assets/images/teachers/omar-elkholy.jpg';
-import BookCard from '../components/common/BookCard';
+import BooksList from '../components/common/BooksList';
 import HeroSection from '../components/HeroSection';
 
 interface Stat {
@@ -41,7 +41,7 @@ const Home: React.FC = () => {
               <span className="text-purple-700 font-medium">المميزات الرئيسية</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
-              <span>لماذا منصة</span>
+              <span>لماذا </span>
               <span className="mx-3 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">منصة م.محمود الشيخ</span>
               <span>؟</span>
             </h2>
@@ -110,24 +110,53 @@ const Home: React.FC = () => {
       </section>
       
       {/* Courses Section */}
-      <div id="courses-section" className="py-24 bg-gradient-to-b from-blue-50 to-slate-50">
+      <div id="courses-section" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-100 to-orange-100 backdrop-blur-md px-6 py-3 rounded-full border border-amber-200/50 mb-8">
-              <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-              </svg>
-              <span className="text-amber-700 font-medium">
+            {/* Modern Badge */}
+            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-100 to-orange-100 px-8 py-4 rounded-full border border-amber-200/50 mb-8 shadow-lg">
+              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
+              <span className="text-amber-700 font-bold text-lg">
                 {isAuthenticated ? 'مخصص لك' : 'اختر مسارك'}
               </span>
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+                </svg>
+              </div>
             </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-4">
-              <svg className="w-10 h-10 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-              </svg>
-              <span>الباقات <span className="text-transparent bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text">المميزة</span></span>
+            
+            {/* Enhanced Title */}
+            <h2 className="text-5xl lg:text-7xl font-black mb-8 leading-tight">
+              <span className="inline-flex items-center gap-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-12 animate-pulse">
+                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                  </svg>
+                </div>
+                <span className="text-gray-800">
+                  الباقات
+                </span>
+                <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+                  المميزة
+                </span>
+              </span>
             </h2>
+            
+            {/* Subtitle */}
+            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+              اكتشف مجموعة متنوعة من الباقات التعليمية المصممة خصيصاً لتلبية احتياجاتك الأكاديمية
+            </p>
+            
+            {/* Decorative Elements */}
+            <div className="flex justify-center items-center gap-4 mb-12">
+              <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+              <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
+            </div>
           </div>
+          
+          {/* Course List Container */}
           <div className="relative">
             <CourseList />
           </div>
@@ -135,7 +164,7 @@ const Home: React.FC = () => {
       </div>
 
       {/* Books Section */}
-      <div className="py-24 bg-gradient-to-b from-slate-50 to-white">
+      <div id="books-section" className="py-24 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-20">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-100 to-emerald-100 backdrop-blur-md px-6 py-3 rounded-full border border-green-200/50 mb-8">
@@ -151,42 +180,7 @@ const Home: React.FC = () => {
               <span>اكتشف كتبنا <span className="text-transparent bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text">المميزة</span></span>
             </h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {[
-              {
-                title: 'الرياضيات المتقدمة',
-                description: 'كتاب شامل لشرح مفاهيم الرياضيات الحديثة مع أمثلة وتدريبات عملية.',
-                price: '120',
-                whatsappNumber: '201234567890',
-                image: require('../assets/images/teachers/images.jpg'),
-              },
-              {
-                title: 'أساسيات الفيزياء',
-                description: 'مدخل مبسط إلى الفيزياء مع تطبيقات حياتية وتمارين تفاعلية.',
-                price: '100',
-                whatsappNumber: '201234567890',
-                image: require('../assets/images/teachers/images.jpg'),
-              },
-              {
-                title: 'دليل اللغة العربية',
-                description: 'شرح قواعد اللغة العربية مع تدريبات وأمثلة متنوعة.',
-                price: '90',
-                whatsappNumber: '201234567890',
-                image: require('../assets/images/teachers/images.jpg'),
-              },
-              {
-                title: 'الكيمياء الممتعة',
-                description: 'كتاب تفاعلي لتبسيط مفاهيم الكيمياء للطلاب.',
-                price: '110',
-                whatsappNumber: '201234567890',
-                image: require('../assets/images/teachers/images.jpg'),
-              },
-            ].map((book, idx) => (
-              <React.Suspense fallback={<div className="text-gray-600">...جاري التحميل</div>} key={idx}>
-                <BookCard {...book} />
-              </React.Suspense>
-            ))}
-          </div>
+          <BooksList />
         </div>
       </div>
 
