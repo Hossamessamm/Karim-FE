@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import teacherImage from '../assets/images/teachers/omar-elkholy.jpg';
 import BooksList from '../components/common/BooksList';
 import HeroSection from '../components/HeroSection';
+import CodeEntryForm from '../components/common/CodeEntryForm';
 
 interface Stat {
   number: string;
@@ -59,8 +60,8 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 ),
-                title: 'تدريب تفاعلي',
-                description: 'اختبارات ذكية بعد كل درس لتقييم مستواك وتحسين أدائك التعليمي',
+                title: ' حل كل الكتب الخارجية',
+                description: 'هنحل الأمتحان - المصدر - البوكليت - التميز       ',
                 gradient: 'from-blue-500 to-blue-600'
               },
               {
@@ -69,8 +70,8 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 ),
-                title: 'خطة دراسية ذكية',
-                description: 'نظام ذكي يرشدك للمحتوى المناسب ويساعدك في تنظيم وقت الدراسة',
+                title: 'مراجعة مستمرة  ',
+                description: 'مراجعة مستمرة من خلال أمتحانات قبل المحاضرة وبعدها وامتحانات شهرية',
                 gradient: 'from-emerald-500 to-teal-600'
               },
               {
@@ -79,8 +80,8 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 ),
-                title: 'محتوى متميز',
-                description: 'فيديوهات تعليمية عالية الجودة بشرح مبسط وأمثلة عملية',
+                title: 'تشجيع دائم ',
+                description: 'تشجيع عن طريق الجوائز المادية والهدايا المميزة',
                 gradient: 'from-purple-500 to-pink-600'
               },
               {
@@ -185,30 +186,8 @@ const Home: React.FC = () => {
       </div>
 
       {/* Lecture Code Section */}
-      <div className="w-full flex justify-center items-center">
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-purple-700 mb-2 text-center drop-shadow">
-          الأكواد
-        </h2>
-      </div>
-      <div className="py-16 flex justify-center items-center bg-gradient-to-br from-white via-blue-50 to-purple-50">
-        <div className="w-full max-w-md bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 flex flex-col items-center gap-6 border border-blue-100">
-          <h2 className="text-2xl sm:text-3xl font-bold text-indigo-700 mb-2 text-center">
-            ادخل كود المحاضرة علشان تتفتحلك
-          </h2>
-          <form className="w-full flex flex-col sm:flex-row gap-4 items-center justify-center">
-            <input
-              type="text"
-              placeholder="اكتب كود المحاضرة هنا..."
-              className="flex-1 px-6 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-white text-lg text-right shadow-sm transition-all duration-200 outline-none"
-            />
-            <button
-              type="submit"
-              className="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 text-lg"
-            >
-              فتح المحاضرة
-            </button>
-          </form>
-        </div>
+      <div className="py-16 bg-gradient-to-br from-white via-blue-50 to-purple-50">
+        <CodeEntryForm />
       </div>
 
       <style>{`

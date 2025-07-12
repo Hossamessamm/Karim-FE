@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Sparkles, User, LogOut, Menu, X, Home, BookOpen, GraduationCap } from 'lucide-react';
+import { Sparkles, User, LogOut, Menu, X, Home, BookOpen, GraduationCap, PlayCircle } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout, currentUser } = useAuth();
@@ -82,13 +82,22 @@ const Navbar: React.FC = () => {
                   </button>
                   
                   {isAuthenticated && (
-                    <Link
-                      to="/enrolled-courses"
-                      className={navLinkClasses('/enrolled-courses')}
-                    >
-                      <GraduationCap className="w-4 h-4 inline-block ml-2" />
-                      دوراتي
-                    </Link>
+                    <>
+                      <Link
+                        to="/my-lectures"
+                        className={navLinkClasses('/my-lectures')}
+                      >
+                        <PlayCircle className="w-4 h-4 inline-block ml-2" />
+                        محاضراتي
+                      </Link>
+                      <Link
+                        to="/enrolled-courses"
+                        className={navLinkClasses('/enrolled-courses')}
+                      >
+                        <GraduationCap className="w-4 h-4 inline-block ml-2" />
+                        دوراتي
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>
@@ -187,18 +196,32 @@ const Navbar: React.FC = () => {
               </button>
               
               {isAuthenticated && (
-                <Link
-                  to="/enrolled-courses"
-                  className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
-                    isCurrentPath('/enrolled-courses') 
-                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                      : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
-                  }`}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <GraduationCap className="w-5 h-5" />
-                  دوراتي
-                </Link>
+                <>
+                  <Link
+                    to="/my-lectures"
+                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isCurrentPath('/my-lectures') 
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <PlayCircle className="w-5 h-5" />
+                    محاضراتي
+                  </Link>
+                  <Link
+                    to="/enrolled-courses"
+                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isCurrentPath('/enrolled-courses') 
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <GraduationCap className="w-5 h-5" />
+                    دوراتي
+                  </Link>
+                </>
               )}
               
               {/* Mobile auth section */}

@@ -19,7 +19,7 @@ export interface QuizAnswer {
 
 export interface QuizQuestion {
   text: string;
-  type: 'MultipleChoice';
+  type: 'MultipleChoice' | 'TrueFalse';
   answers: QuizAnswer[];
 }
 

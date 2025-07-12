@@ -21,6 +21,8 @@ import EnrolledCourses from './components/user/EnrolledCourses';
 import CourseDetail from './components/course/CourseDetail';
 import CourseViewer from './components/course/CourseViewer';
 import RefreshTokenTest from './components/test/RefreshTokenTest';
+import MyLectures from './pages/MyLectures';
+import UnitViewer from './components/unit/UnitViewer';
 
 function App() {
   return (
@@ -45,6 +47,11 @@ function App() {
                         <Profile />
                       </ProtectedRoute>
                     } />
+                                                    <Route path="/my-lectures" element={
+                      <ProtectedRoute>
+                        <MyLectures />
+                      </ProtectedRoute>
+                    } />
                     <Route path="/enrolled-courses" element={
                       <ProtectedRoute>
                         <EnrolledCourses />
@@ -62,6 +69,12 @@ function App() {
                   <Route path="/course-player/:courseId" element={
                     <ProtectedRoute>
                       <CourseViewer />
+                    </ProtectedRoute>
+                  } />
+                  {/* UnitViewer without MainLayout (no Navbar/Footer) */}
+                  <Route path="/unit-viewer/:unitId" element={
+                    <ProtectedRoute>
+                      <UnitViewer />
                     </ProtectedRoute>
                   } />
                 </Routes>

@@ -175,10 +175,17 @@ const Footer: React.FC = () => {
         {/* Bottom Section */}
         <div className="pt-8 border-t border-white/10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-            <div className="text-center lg:text-right">
-              <p className="text-gray-400 text-sm">
-                © {new Date().getFullYear()} منصة م.محمود الشيخ. جميع الحقوق محفوظة.
-              </p>
+            <div className="text-center lg:text-right flex flex-col sm:flex-row items-center gap-2">
+             
+              <a
+                href="https://wa.me/201114706613"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-400 text-sm font-bold hover:underline hover:text-emerald-300 transition-colors duration-200 cursor-pointer ml-2"
+                title="تواصل مع Edu Craft عبر واتساب"
+              >
+                جميع الحقوق محفوظة لشركة Edu Craft
+              </a>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-gray-400 text-sm">

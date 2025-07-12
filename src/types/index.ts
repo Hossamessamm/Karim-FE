@@ -69,4 +69,7 @@ export interface User {
   enrolledCourses: string[];
   grade: string;
   phoneNumber?: string;
-} 
+}
+
+// Export unit types
+export * from './unit'; 
