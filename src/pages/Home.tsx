@@ -23,9 +23,9 @@ const Home: React.FC = () => {
   };
 
   const stats: Stat[] = [
-    { number: '4000+', label: 'طالب مشترك' },
+    { number: '4000+', label: 'طالب معانا' },
     { number: '99+', label: 'فيديو تعليمي' },
-    { number: '24 ساعة', label: 'دعم متواصل' }
+    { number: '24 ساعة', label: 'دعم على طول' }
   ];
 
   return (
@@ -39,15 +39,15 @@ const Home: React.FC = () => {
           <div className="text-center mb-20">
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 to-pink-100 backdrop-blur-md px-6 py-3 rounded-full border border-purple-200/50 mb-8">
               <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-              <span className="text-purple-700 font-medium">المميزات الرئيسية</span>
+              <span className="text-purple-700 font-medium">إيه اللي مميزنا</span>
             </div>
             <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
-              <span>لماذا </span>
+              <span>ليه تختار </span>
               <span className="mx-3 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">منصة م.محمود الشيخ</span>
               <span>؟</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              اكتشف المميزات التي تجعل تجربتك التعليمية استثنائية وممتعة
+              تعال شوف إيه اللي هيخليك تحب الدراسة وتتفوق فيها
             </p>
           </div>
 
@@ -60,8 +60,8 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 ),
-                title: ' حل كل الكتب الخارجية',
-                description: 'هنحل الأمتحان - المصدر - البوكليت - التميز       ',
+                title: 'حل كل الكتب الخارجية',
+                description: 'هنحل الامتحان - المصدر - البوكليت - التميز وكل حاجة تخطر على بالك',
                 gradient: 'from-blue-500 to-blue-600'
               },
               {
@@ -70,8 +70,8 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                   </svg>
                 ),
-                title: 'مراجعة مستمرة  ',
-                description: 'مراجعة مستمرة من خلال أمتحانات قبل المحاضرة وبعدها وامتحانات شهرية',
+                title: 'مراجعة على طول',
+                description: 'امتحانات قبل المحاضرة وبعدها وامتحانات شهرية عشان متنساش اللي اتعلمته',
                 gradient: 'from-emerald-500 to-teal-600'
               },
               {
@@ -80,18 +80,18 @@ const Home: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                   </svg>
                 ),
-                title: 'تشجيع دائم ',
-                description: 'تشجيع عن طريق الجوائز المادية والهدايا المميزة',
+                title: 'تشجيع وهدايا',
+                description: 'جوائز حلوة وهدايا مميزة للطلاب المتفوقين عشان نحفزك على التفوق',
                 gradient: 'from-purple-500 to-pink-600'
               },
               {
                 icon: (
                   <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
                   </svg>
                 ),
-                title: 'دعم مستمر',
-                description: 'فريق دعم متخصص يرافقك في رحلتك التعليمية على مدار الساعة',
+                title: 'دعم 24 ساعة',
+                description: 'فريق الدعم موجود معاك في أي وقت لو عندك أي استفسار أو مشكلة',
                 gradient: 'from-orange-500 to-red-600'
               }
             ].map((feature, index) => (
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
             <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-100 to-orange-100 px-8 py-4 rounded-full border border-amber-200/50 mb-8 shadow-lg">
               <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
               <span className="text-amber-700 font-bold text-lg">
-                {isAuthenticated ? 'مخصص لك' : 'اختر مسارك'}
+                {isAuthenticated ? 'مخصوص ليك' : 'اختار اللي يناسبك'}
               </span>
               <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
                 <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -136,17 +136,17 @@ const Home: React.FC = () => {
                   </svg>
                 </div>
                 <span className="text-gray-800">
-                  الباقات
+                الباقات
                 </span>
                 <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-                  المميزة
+                المميزة
                 </span>
               </span>
             </h2>
             
             {/* Subtitle */}
             <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-              اكتشف مجموعة متنوعة من الباقات التعليمية المصممة خصيصاً لتلبية احتياجاتك الأكاديمية
+              شوف الباقات المميزة اللي عملناها خصيصاً عشان تنجح وتتفوق
             </p>
             
             {/* Decorative Elements */}
@@ -178,7 +178,7 @@ const Home: React.FC = () => {
               <svg className="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 2H8c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H8V4h11v16zM6 6H4v16c0 1.1.9 2 2 2h12v-2H6V6z"/>
               </svg>
-              <span>اكتشف كتبنا <span className="text-transparent bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text">المميزة</span></span>
+              <span> كتبنا <span className="text-transparent bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text">المميزة</span></span>
             </h2>
           </div>
           <BooksList />

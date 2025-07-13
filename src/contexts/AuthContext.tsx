@@ -10,7 +10,7 @@ interface AuthContextType {
     isUnconfirmedEmail?: boolean;
     isMaxDevicesError?: boolean;
   }>;
-  register: (name: string, email: string, password: string, confirmPassword: string, phoneNumber: string, grade: string) => Promise<{success: boolean, error?: string}>;
+  register: (formData: FormData) => Promise<{success: boolean, error?: string}>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ success: boolean; message?: string; error?: string }>;
   resetPasswordWithOtp: (email: string, otp: string, newPassword: string, confirmPassword: string) => Promise<{ success: boolean; message?: string; error?: string }>;
@@ -271,27 +271,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (
-    name: string, 
-    email: string, 
-    password: string,
-    confirmPassword: string, 
-    phoneNumber: string,
-    grade: string
-  ): Promise<{success: boolean, error?: string}> => {
+  const register = async (formData: FormData): Promise<{success: boolean, error?: string}> => {
     setIsLoading(true);
     
     try {
-      const userData = {
-        userName: name,
-        email,
-        password,
-        confirmPassword,
-        phoneNumber,
-        academicYear: grade
-      };
-      
-      const result = await authService.register(userData);
+      const result = await authService.register(formData);
       
       if (result.success && result.data) {
         // Don't set user or authentication state after registration

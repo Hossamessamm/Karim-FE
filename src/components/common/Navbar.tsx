@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Sparkles, User, LogOut, Menu, X, Home, BookOpen, GraduationCap, PlayCircle } from 'lucide-react';
+import { User, LogOut, Menu, X, Home, BookOpen, GraduationCap, PlayCircle } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout, currentUser } = useAuth();
@@ -43,24 +43,7 @@ const Navbar: React.FC = () => {
               {/* Logo and Brand */}
               <div className="flex items-center">
                 <Link to="/" className="flex items-center group">
-                  {/* Enhanced Logo */}
-                  <div className="relative w-12 h-12 mr-3 rounded-xl bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-600 group-hover:shadow-xl group-hover:shadow-blue-500/25 transition-all duration-300 overflow-hidden">
-                    <div className="absolute inset-0 bg-white/20 group-hover:bg-white/30 transition-all duration-300"></div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-white group-hover:scale-110 group-hover:rotate-12 transition-all duration-300" />
-                    </div>
-                    <div className="absolute inset-0 border border-white/20 rounded-xl"></div>
-                    {/* Shimmer effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                  </div>
                   
-                  {/* Enhanced Brand name */}
-                  <div className="relative">
-                    <span className="text-2xl font-black bg-gradient-to-r from-gray-800 via-blue-600 to-purple-600 bg-clip-text text-transparent group-hover:opacity-90 transition-all duration-300">
-                      منصة م.محمود الشيخ
-                    </span>
-                    <div className="absolute -bottom-1 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full transition-all duration-300 w-0 group-hover:w-full"></div>
-                  </div>
                 </Link>
                 
                 {/* Desktop Navigation */}
@@ -100,6 +83,52 @@ const Navbar: React.FC = () => {
                     </>
                   )}
                 </div>
+
+                {/* Mobile Navigation - Show authenticated user links */}
+                {isAuthenticated && (
+                  <div className="md:hidden flex items-center mr-4 space-x-2">
+                    <Link
+                      to="/my-lectures"
+                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                        isCurrentPath('/my-lectures')
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                      }`}
+                    >
+                      <PlayCircle className="w-4 h-4 inline-block ml-1" />
+                      محاضراتي
+                    </Link>
+                    <Link
+                      to="/enrolled-courses"
+                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
+                        isCurrentPath('/enrolled-courses')
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                      }`}
+                    >
+                      <GraduationCap className="w-4 h-4 inline-block ml-1" />
+                      دوراتي
+                    </Link>
+                  </div>
+                )}
+
+                {/* Mobile Navigation - Show auth links for guest users */}
+                {!isAuthenticated && (
+                  <div className="md:hidden flex items-center mr-4 space-x-2">
+                    <Link
+                      to="/login"
+                      className="px-3 py-2 text-xs font-medium text-gray-700 hover:text-blue-600 rounded-lg transition-all duration-300 hover:bg-blue-50"
+                    >
+                      تسجيل الدخول
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 text-xs"
+                    >
+                      إنشاء حساب
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Auth Section */}
@@ -194,35 +223,6 @@ const Navbar: React.FC = () => {
                 <BookOpen className="w-5 h-5" />
                 الدورات
               </button>
-              
-              {isAuthenticated && (
-                <>
-                  <Link
-                    to="/my-lectures"
-                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
-                      isCurrentPath('/my-lectures') 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <PlayCircle className="w-5 h-5" />
-                    محاضراتي
-                  </Link>
-                  <Link
-                    to="/enrolled-courses"
-                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
-                      isCurrentPath('/enrolled-courses') 
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
-                    }`}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <GraduationCap className="w-5 h-5" />
-                    دوراتي
-                  </Link>
-                </>
-              )}
               
               {/* Mobile auth section */}
               <div className="pt-4 border-t border-gray-200/50">

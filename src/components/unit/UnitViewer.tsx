@@ -6,6 +6,7 @@ import ReactPlayer from 'react-player';
 import { QuizContent } from '../quiz/QuizContent';
 import axios from 'axios';
 import { BASE_URL } from '../../apiConfig';
+import useScrollToTop from '../../hooks/useScrollToTop';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -133,6 +134,7 @@ const isBunnyVideo = (url: string): boolean => {
 };
 
 const UnitViewer: React.FC = () => {
+  useScrollToTop();
   const { unitId } = useParams<{ unitId: string }>();
   const navigate = useNavigate();
   const { 

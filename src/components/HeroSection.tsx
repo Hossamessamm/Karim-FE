@@ -15,15 +15,15 @@ const HeroSection = () => {
   }, []);
 
   const stats = [
-    { number: "5000+", label: "طالب متفوق", icon: Users },
+    { number: "5000+", label: "طالب متفوق معانا", icon: Users },
     { number: "98%", label: "نسبة النجاح", icon: Award },
     { number: "5", label: "تقييم الطلاب", icon: Star }
   ];
 
   const testimonials = [
-    { text: "منصة رائعة ساعدتني في تحقيق درجات عالية", name: "أحمد محمد" },
-    { text: "أسلوب التدريس مميز والشرح واضح جداً", name: "فاطمة علي" },
-    { text: "أفضل منصة تعليمية استخدمتها على الإطلاق", name: "محمد حسن" }
+    { text: "منصة جامدة جداً ساعدتني أجيب درجات عالية", name: "أحمد محمد" },
+    { text: "أسلوب التدريس حلو والشرح واضح أوي", name: "فاطمة علي" },
+    { text: "أحسن منصة تعليمية استخدمتها  ", name: "محمد حسن" }
   ];
 
   const scrollToCourses = () => {
@@ -156,9 +156,14 @@ const HeroSection = () => {
               </span>
             </h1>
             {/* Subtitle */}
-            <p className="text-xl sm:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              اكتشف طريقة جديدة للتعلم مع منصة محمود الشيخ - أحدث المناهج التعليمية والأدوات التفاعلية لتحقيق أفضل النتائج الأكاديمية.
-            </p>
+            <div className="mb-8 flex items-center justify-center lg:justify-start">
+              <span className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-600 shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+                <span className="text-lg sm:text-2xl font-bold text-white tracking-wide">درجة التاريخ مضمونة</span>
+              </span>
+            </div>
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center lg:justify-end">
               <button

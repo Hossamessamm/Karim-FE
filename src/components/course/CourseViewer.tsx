@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import useScrollToTop from '../../hooks/useScrollToTop';
 import { 
   useCourseApi, 
   CourseDetails, 
@@ -159,6 +160,7 @@ const clearCourseDetailsCache = (courseId: string) => {
 };
 
 const CourseViewer: React.FC = () => {
+  useScrollToTop();
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { fetchCourseDetails, isLoading, fetchLessonDetails } = useCourseApi();

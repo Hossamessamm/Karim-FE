@@ -3,18 +3,53 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import teacherImage from '../../assets/images/teachers/omar-elkholy2.png';
 import ApiErrorAlert from '../common/ApiErrorAlert';
+import { Upload, X } from 'lucide-react';
 
 const Register: React.FC = () => {
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [parentPhoneNumber, setParentPhoneNumber] = useState(''); // Parent phone
-  const [grade, setGrade] = useState('');
+  const [parentPhone, setParentPhone] = useState('');
+  const [academicYear, setAcademicYear] = useState('');
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [error, setError] = useState('');
   const { register, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('نوع الملف غير مدعوم. يرجى اختيار صورة بصيغة JPG أو PNG');
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError('حجم الصورة كبير جداً. يرجى اختيار صورة أصغر من 5 ميجابايت');
+        return;
+      }
+
+      setImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +60,7 @@ const Register: React.FC = () => {
       return;
     }
 
-    if (!grade) {
+    if (!academicYear) {
       setError('الرجاء اختيار الصف الدراسي');
       return;
     }
@@ -35,19 +70,44 @@ const Register: React.FC = () => {
       return;
     }
 
-    if (!parentPhoneNumber) {
+    if (!parentPhone) {
       setError('رقم هاتف ولي الأمر مطلوب');
       return;
     }
 
-    // Convert grade format for API
-    let academicGrade = grade;
-    if (grade === "الصف الأول الثانوي") academicGrade = "Secondary1";
-    if (grade === "الصف الثاني الثانوي") academicGrade = "Secondary2";
-    if (grade === "الصف الثالث الثانوي") academicGrade = "Secondary3";
+    if (!userName) {
+      setError('اسم المستخدم مطلوب');
+      return;
+    }
+
+    // Validate phone number format (Egyptian)
+    const phoneRegex = /^01[0-9]{9}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      setError('رقم الهاتف يجب أن يكون بالصيغة المصرية (01xxxxxxxxx)');
+      return;
+    }
+
+    if (!phoneRegex.test(parentPhone)) {
+      setError('رقم هاتف ولي الأمر يجب أن يكون بالصيغة المصرية (01xxxxxxxxx)');
+      return;
+    }
 
     try {
-      const result = await register(name, email, password, confirmPassword, phoneNumber, academicGrade);
+      // Create FormData for multipart/form-data
+      const formData = new FormData();
+      formData.append('UserName', userName);
+      formData.append('Email', email);
+      formData.append('Password', password);
+      formData.append('ConfirmPassword', confirmPassword);
+      formData.append('PhoneNumber', phoneNumber);
+      formData.append('ParentPhone', parentPhone);
+      formData.append('AcademicYear', academicYear);
+      
+      if (image) {
+        formData.append('Image', image);
+      }
+
+      const result = await register(formData);
       
       if (result.success) {
         // Navigate directly to login page with success message
@@ -107,7 +167,7 @@ const Register: React.FC = () => {
                   م. محمود الشيخ
                 </h2>
                 <p className="text-blue-50 text-base md:text-lg opacity-90">
-                  انضم إلى مجتمع تعلم اللغة العربية
+                  انضم إلى مجتمع تعلم التاريخ
                 </p>
               </div>
             </div>
@@ -127,19 +187,19 @@ const Register: React.FC = () => {
 
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                    الاسم الكامل
+                  <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-1">
+                    اسم المستخدم
                   </label>
                   <div className="relative">
                     <input
-                      id="name"
-                      name="name"
+                      id="userName"
+                      name="userName"
                       type="text"
                       required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
-                      placeholder="أدخل اسمك الكامل"
+                      placeholder="أدخل اسم المستخدم"
                     />
                   </div>
                 </div>
@@ -176,46 +236,46 @@ const Register: React.FC = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
-                      placeholder="أدخل رقم هاتفك"
+                      placeholder="01xxxxxxxxx"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="parentPhoneNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                    ادخل رقم هاتف ولي الامر
+                  <label htmlFor="parentPhone" className="block text-sm font-medium text-gray-700 mb-1">
+                    رقم هاتف ولي الأمر
                   </label>
                   <div className="relative">
                     <input
-                      id="parentPhoneNumber"
-                      name="parentPhoneNumber"
+                      id="parentPhone"
+                      name="parentPhone"
                       type="tel"
                       required
-                      value={parentPhoneNumber}
-                      onChange={(e) => setParentPhoneNumber(e.target.value)}
+                      value={parentPhone}
+                      onChange={(e) => setParentPhone(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
-                      placeholder="ادخل رقم هاتف ولي الامر"
+                      placeholder="01xxxxxxxxx"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="grade" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="academicYear" className="block text-sm font-medium text-gray-700 mb-1">
                     الصف الدراسي
                   </label>
                   <div className="relative">
                     <select
-                      id="grade"
-                      name="grade"
+                      id="academicYear"
+                      name="academicYear"
                       required
-                      value={grade}
-                      onChange={(e) => setGrade(e.target.value)}
+                      value={academicYear}
+                      onChange={(e) => setAcademicYear(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
                     >
                       <option value="">اختر صفك الدراسي</option>
-                      <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
-                      <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
-                      <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                      <option value="0">الصف الأول الثانوي</option>
+                      <option value="1">الصف الثاني الثانوي</option>
+                      <option value="2">الصف الثالث الثانوي</option>
                     </select>
                   </div>
                 </div>
@@ -233,7 +293,7 @@ const Register: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="block w-full px-4 py-3.5 rounded-xl border border-gray-200 bg-white/50 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-sm"
-                      placeholder="أنشئ كلمة مرور"
+                      placeholder="أنشئ كلمة مرور قوية"
                     />
                   </div>
                 </div>
@@ -254,6 +314,53 @@ const Register: React.FC = () => {
                       placeholder="أكد كلمة المرور"
                     />
                   </div>
+                </div>
+
+                {/* ID Document Upload */}
+                <div>
+                  <label htmlFor="idDocument" className="block text-sm font-medium text-gray-700 mb-1">
+                    صورة البطاقة أو شهادة الميلاد 
+                  </label>
+                  <div className="relative">
+                    <div className="flex items-center justify-center w-full">
+                      <label htmlFor="idDocument" className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-xl cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                        {imagePreview ? (
+                          <div className="relative w-full h-full">
+                            <img
+                              src={imagePreview}
+                              alt="معاينة الوثيقة"
+                              className="w-full h-full object-cover rounded-xl"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                            <Upload className="w-8 h-8 mb-4 text-gray-500" />
+                            <p className="mb-2 text-sm text-gray-500">
+                              <span className="font-semibold">اضغط لرفع الصورة</span> أو اسحبها هنا
+                            </p>
+                            <p className="text-xs text-gray-500">PNG, JPG أو JPEG (أقل من 5MB)</p>
+                          </div>
+                        )}
+                        <input
+                          id="idDocument"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    يرجى رفع صورة واضحة لبطاقة الرقم القومي أو شهادة الميلاد للتحقق من الهوية
+                  </p>
                 </div>
               </div>
 
