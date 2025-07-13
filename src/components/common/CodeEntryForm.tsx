@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import useUnitCode from '../../hooks/useUnitCode';
+import { unitCodeService } from '../../services/unitCodeService';
 
 const CodeEntryForm: React.FC = () => {
   const [code, setCode] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isEnteringCode, setIsEnteringCode] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { enterUnitCode, isEnteringCode, error, clearError } = useUnitCode();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,12 +23,13 @@ const CodeEntryForm: React.FC = () => {
       return;
     }
 
-    clearError();
+    setError(null);
+    setIsEnteringCode(true);
     
     try {
-      const success = await enterUnitCode(code.trim());
+      const response = await unitCodeService.enterUnitCode(code.trim());
       
-      if (success) {
+      if (response.success) {
         setShowSuccess(true);
         setCode('');
         
@@ -36,9 +38,14 @@ const CodeEntryForm: React.FC = () => {
           setShowSuccess(false);
           navigate('/my-lectures');
         }, 2000);
+      } else {
+        setError(response.message || 'فشل في إدخال الكود');
       }
-    } catch (error) {
-      console.error('Error entering code:', error);
+    } catch (error: any) {
+      const errorMessage = unitCodeService.formatErrorMessage(error);
+      setError(errorMessage);
+    } finally {
+      setIsEnteringCode(false);
     }
   };
 

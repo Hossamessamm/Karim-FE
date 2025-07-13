@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import { authService } from '../services/api';
+import { authService, API_URL } from '../services/api';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = JSON.parse(savedUser);
       
       // Use the enrolled courses endpoint to validate the token
-      const url = new URL('https://api.mromarelkholy.com/api/Student/Student-Enrolled-Courses');
+      const url = new URL(`${API_URL}/api/Student/Student-Enrolled-Courses`);
       url.searchParams.append('studentId', user.id);
       url.searchParams.append('pagenumber', '1');
       url.searchParams.append('pagesize', '1');
@@ -260,7 +260,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return {
         success: false,
         error: result.error,
-        isUnconfirmedEmail: result.isUnconfirmedEmail,
         isMaxDevicesError: result.isMaxDevicesError
       };
     } catch (error) {
@@ -337,8 +336,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string): Promise<{ success: boolean; message?: string; error?: string }> => {
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'https://api.mromarelkholy.com';
-      
       // Use authService which is already configured with axios
       const response = await authService.resetPassword(email);
       
