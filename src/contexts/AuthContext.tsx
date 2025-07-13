@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import { authService, API_URL } from '../services/api';
+import { authService } from '../services/api';
+import { BASE_URL } from '../apiConfig';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -95,7 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = JSON.parse(savedUser);
       
       // Use the enrolled courses endpoint to validate the token
-      const url = new URL(`${API_URL}/api/Student/Student-Enrolled-Courses`);
+      const url = new URL(`${BASE_URL}api/Student/Student-Enrolled-Courses`);
       url.searchParams.append('studentId', user.id);
       url.searchParams.append('pagenumber', '1');
       url.searchParams.append('pagesize', '1');
