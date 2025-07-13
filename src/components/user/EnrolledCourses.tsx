@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { BASE_URL } from '../../apiConfig';
 
 interface Course {
   id: string;
@@ -39,7 +40,7 @@ const EnrolledCourses: React.FC = () => {
 
   useEffect(() => {
     fetchCourses();
-  }, [currentPage]);
+  }, [currentPage, currentUser?.id]);
 
   const fetchCourses = async () => {
     try {
@@ -53,7 +54,7 @@ const EnrolledCourses: React.FC = () => {
       }
 
       const response = await fetch(
-        `https://api.ibrahim-magdy.com/api/Student/Student-Enrolled-Courses?studentId=${currentUser?.id}&pagenumber=${currentPage}&pagesize=${pageSize}`,
+        `${BASE_URL}api/Student/Student-Enrolled-Courses?studentId=${currentUser?.id}&pagenumber=${currentPage}&pagesize=${pageSize}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -77,7 +78,6 @@ const EnrolledCourses: React.FC = () => {
           setCourses(data.data.courses);
           setTotalPages(data.data.totalPages);
         setTotalCount(data.data.totalCount);
-        setCurrentPage(data.data.currentPage);
       } else {
         setError(data.message || 'حدث خطأ أثناء جلب الدورات');
         setCourses([]);
