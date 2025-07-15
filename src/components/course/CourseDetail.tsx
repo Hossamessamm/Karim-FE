@@ -39,6 +39,7 @@ const CourseDetail: React.FC = () => {
   const [enrollmentSuccess, setEnrollmentSuccess] = useState(false);
   const [isEnrolling, setIsEnrolling] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   
   useEffect(() => {
     const loadCourseDetails = async () => {
@@ -124,6 +125,7 @@ const CourseDetail: React.FC = () => {
       if (response.success && response.message !== 'Code not found.') {
         setEnrollmentSuccess(true);
         setEnrollmentError('');
+        setShowSuccessPopup(true);
         // Refresh enrollment status
         if (id && currentUser?.id) {
           const enrolled = await checkEnrollment(currentUser.id, id);
@@ -153,6 +155,17 @@ const CourseDetail: React.FC = () => {
     setCode('');
     setEnrollmentError('');
     setEnrollmentSuccess(false);
+    setShowSuccessPopup(false);
+  };
+
+  const handleStartCourse = () => {
+    setShowSuccessPopup(false);
+    navigate(`/course-player/${id}`);
+  };
+
+  const handleGoToMyCourses = () => {
+    setShowSuccessPopup(false);
+    navigate('/my-lectures');
   };
 
   const tabs = [
@@ -190,6 +203,40 @@ const CourseDetail: React.FC = () => {
 
   return (
     <div className="kadence-theme min-h-screen bg-slate-50" dir="rtl">
+      {/* Success Popup Modal */}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 transform animate-pulse">
+            {/* Success Icon */}
+            <div className="text-center mb-6">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">تم التسجيل بنجاح!</h3>
+              <p className="text-gray-600">مرحباً بك في {courseDetails?.courseName}</p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleStartCourse}
+                className="w-full px-6 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium hover:from-green-700 hover:to-green-800 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-green-500/25"
+              >
+                بدأ
+              </button>
+              <button
+                onClick={handleGoToMyCourses}
+                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-blue-500/25"
+              >
+                الانتقال لدوراتي
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <div className="hero-section relative bg-gradient-to-br from-indigo-900 to-blue-800 text-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">

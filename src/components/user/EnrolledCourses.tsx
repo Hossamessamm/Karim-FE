@@ -159,14 +159,7 @@ const EnrolledCourses: React.FC = () => {
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {course.description}
                     </p>
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm text-gray-500">
-                        تاريخ التحديث: {formatDate(course.modificationDate)}
-                      </span>
-                      <span className="text-sm font-medium text-primary">
-                        {course.price} جنيه
-                      </span>
-                    </div>
+                   
                     <button
                       onClick={() => handleStartCourse(course.id)}
                       className="w-full py-2 px-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors duration-200 flex items-center justify-center gap-2 group"
