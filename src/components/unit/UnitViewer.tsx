@@ -650,8 +650,8 @@ const UnitViewer: React.FC = () => {
                           <VideoWatermark 
                             phoneNumber={userPhoneNumber} 
                             isVisible={true}
-                            opacity={0.6}
-                            speed={30}
+                            opacity={0.7}
+                            speed={40}
                           />
                         )}
                         

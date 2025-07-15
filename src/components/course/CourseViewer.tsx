@@ -1002,8 +1002,8 @@ const CourseViewer: React.FC = () => {
                           <VideoWatermark 
                             phoneNumber={userPhoneNumber} 
                             isVisible={true}
-                            opacity={0.6}
-                            speed={25}
+                            opacity={0.7}
+                            speed={40}
                           />
                         )}
                         

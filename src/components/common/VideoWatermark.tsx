@@ -21,9 +21,9 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
     let animationFrame: number;
     const startTime = Date.now();
     
-    // Random starting position
-    const randomStartX = Math.random() * 60 + 20; // 20% to 80%
-    const randomStartY = Math.random() * 60 + 20; // 20% to 80%
+    // Center position with small random offset
+    const centerX = 50 + (Math.random() * 6 - 3); // 47% to 53%
+    const centerY = 50 + (Math.random() * 6 - 3); // 47% to 53%
 
     const animate = () => {
       const elapsed = (Date.now() - startTime) / 1000; // seconds
@@ -34,26 +34,26 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
       const angle2 = progress * 1.7 * Math.PI; // Different frequency
       const angle3 = progress * 0.8 * Math.PI; // Even slower frequency
       
-      // Combine multiple sine waves for complex movement
-      const baseX = randomStartX;
-      const baseY = randomStartY;
+      // Use center position as base
+      const baseX = centerX;
+      const baseY = centerY;
       
-      // Multiple movement components
-      const moveX1 = Math.sin(angle1) * 15; // Primary horizontal movement
-      const moveX2 = Math.cos(angle2) * 8;  // Secondary horizontal movement
-      const moveY1 = Math.cos(angle1) * 12; // Primary vertical movement  
-      const moveY2 = Math.sin(angle3) * 6;  // Secondary vertical movement
+      // Smaller movement components to keep watermark near center
+      const moveX1 = Math.sin(angle1) * 8; // Primary horizontal movement (reduced range)
+      const moveX2 = Math.cos(angle2) * 4; // Secondary horizontal movement (reduced range)
+      const moveY1 = Math.cos(angle1) * 6; // Primary vertical movement (reduced range)
+      const moveY2 = Math.sin(angle3) * 3; // Secondary vertical movement (reduced range)
       
-      // Add some drift over time
-      const driftX = Math.sin(angle3) * 10;
-      const driftY = Math.cos(angle3) * 8;
+      // Smaller drift
+      const driftX = Math.sin(angle3) * 3;
+      const driftY = Math.cos(angle3) * 3;
       
       const x = baseX + moveX1 + moveX2 + driftX;
       const y = baseY + moveY1 + moveY2 + driftY;
       
-      // Ensure the watermark stays within bounds with padding
-      const boundedX = Math.max(8, Math.min(88, x));
-      const boundedY = Math.max(8, Math.min(88, y));
+      // Tighter bounds to keep near center
+      const boundedX = Math.max(40, Math.min(60, x));
+      const boundedY = Math.max(40, Math.min(60, y));
       
       setPosition({ x: boundedX, y: boundedY });
       
@@ -84,11 +84,13 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
       }}
     >
       <div 
-        className="bg-black/40 backdrop-blur-sm text-white text-xs px-2.5 py-1 rounded-md font-mono select-none border border-white/20 shadow-lg animate-bounce"
+        className="bg-black/50 backdrop-blur-md text-white text-sm px-3 py-1.5 rounded-md font-mono select-none border border-white/30 shadow-lg animate-pulse"
         style={{ 
-          opacity,
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))',
-          animationDuration: '3s'
+          opacity: Math.min(1, opacity * 1.3), // Increase opacity but cap at 1
+          filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.4))',
+          animationDuration: '3s',
+          letterSpacing: '0.5px',
+          fontWeight: 500
         }}
       >
         {phoneNumber}
