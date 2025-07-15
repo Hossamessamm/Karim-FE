@@ -1003,7 +1003,7 @@ const CourseViewer: React.FC = () => {
                             phoneNumber={userPhoneNumber} 
                             isVisible={true}
                             opacity={0.7}
-                            speed={40}
+                            speed={5}
                           />
                         )}
                         
