@@ -26,6 +26,29 @@ export interface UnitLessonDto {
   active: boolean;
 }
 
+// New lesson type with progress information
+export interface UnitLessonWithProgressDto {
+  id: number;
+  lessonName: string;
+  titel: string;
+  order: number;
+  active: boolean;
+  type: LessonType;
+  isCompleted: boolean | null;
+  isQuizSubmitted: boolean | null;
+}
+
+// New unit data with progress and enrollment date
+export interface UnitWithProgressDto {
+  id: number;
+  unitName: string;
+  titel: string;
+  active: boolean;
+  order: number;
+  enrollmentDate: string;
+  lessons: UnitLessonWithProgressDto[];
+}
+
 export enum LessonType {
   Video = 'Video',
   Quiz = 'Quiz'
@@ -64,6 +87,13 @@ export interface UnitLessonsResponse {
     pageSize: number;
     lessons: UnitLessonDto[];
   };
+}
+
+// New API response type for tree-unit-with-progress endpoint
+export interface UnitWithProgressResponse {
+  success: boolean;
+  message: string;
+  data: UnitWithProgressDto;
 }
 
 // Lesson Content types

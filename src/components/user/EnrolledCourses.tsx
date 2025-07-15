@@ -27,7 +27,12 @@ interface ApiResponse {
   };
 }
 
+// Centralized request deduplication
+const pendingRequests = new Map<string, Promise<any>>();
+
 const EnrolledCourses: React.FC = () => {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,11 +40,29 @@ const EnrolledCourses: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 10; // Updated to match API default
-  const navigate = useNavigate();
-  const { currentUser } = useAuth();
   
-  // Add request deduplication
-  const pendingRequests = React.useRef(new Map<string, Promise<void>>());
+  // Helper function to construct course image URL
+  const getCourseImageSrc = (course: Course) => {
+    // If imagePath is null or undefined, use default image
+    if (!course.imagePath) {
+      return '/default-course.jpg';
+    }
+    
+    if (course.imagePath) {
+      // If imagePath is a relative path, prepend the API base URL
+      if (course.imagePath.startsWith('/') || course.imagePath.startsWith('images/')) {
+        return `${BASE_URL}${course.imagePath}`;
+      }
+      // If it's already a full URL, use it as is
+      if (course.imagePath.startsWith('http')) {
+        return course.imagePath;
+      }
+      // Otherwise, assume it's relative to the API base
+      return `${BASE_URL}${course.imagePath}`;
+    }
+    // Fallback to a default image if no image path is provided
+    return '/default-course.jpg';
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -50,9 +73,9 @@ const EnrolledCourses: React.FC = () => {
     const requestKey = `courses_${currentUser?.id}_${currentPage}_${pageSize}`;
     
     // Check if there's already a pending request for this key
-    if (pendingRequests.current.has(requestKey)) {
+    if (pendingRequests.has(requestKey)) {
       console.log('Request already in progress, skipping duplicate call');
-      return pendingRequests.current.get(requestKey);
+      return pendingRequests.get(requestKey);
     }
 
     const requestPromise = (async () => {
@@ -111,12 +134,12 @@ const EnrolledCourses: React.FC = () => {
     })();
     
     // Store the promise and clean it up when done
-    pendingRequests.current.set(requestKey, requestPromise);
+    pendingRequests.set(requestKey, requestPromise);
     
     try {
       await requestPromise;
     } finally {
-      pendingRequests.current.delete(requestKey);
+      pendingRequests.delete(requestKey);
     }
   };
 
@@ -169,9 +192,14 @@ const EnrolledCourses: React.FC = () => {
                 >
                   <div className="relative h-48 bg-gray-200">
                     <img
-                      src={course.imagePath}
+                      src={getCourseImageSrc(course)}
                       alt={course.courseName}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        // Fallback to default image if the API image fails to load
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/default-course.jpg';
+                      }}
                     />
                     {course.term && (
                       <div className="absolute top-4 right-4 bg-primary text-white px-3 py-1 rounded-full text-sm">

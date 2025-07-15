@@ -3,9 +3,33 @@ import { Link } from 'react-router-dom';
 import { Course } from '../../hooks/useCourseApi';
 import { Star, BookOpen, ArrowLeft, Sparkles } from 'lucide-react';
 import { getTermInArabic } from '../../utils/gradeTranslations';
+import { BASE_URL } from '../../apiConfig';
 
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
   const formattedPrice = (course.price ?? 0).toFixed(2);
+
+  // Helper function to construct course image URL
+  const getCourseImageSrc = (course: Course) => {
+    // If imagePath is null or undefined, use default image
+    if (!course.imagePath) {
+      return '/default-course.jpg';
+    }
+    
+    if (course.imagePath) {
+      // If imagePath is a relative path, prepend the API base URL
+      if (course.imagePath.startsWith('/') || course.imagePath.startsWith('images/')) {
+        return `${BASE_URL}${course.imagePath}`;
+      }
+      // If it's already a full URL, use it as is
+      if (course.imagePath.startsWith('http')) {
+        return course.imagePath;
+      }
+      // Otherwise, assume it's relative to the API base
+      return `${BASE_URL}${course.imagePath}`;
+    }
+    // Fallback to a default image if no image path is provided
+    return '/default-course.jpg';
+  };
 
   return (
     <div className="group relative">
@@ -20,9 +44,14 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
         {/* Image Section */}
         <div className="relative aspect-video overflow-hidden">
           <img 
-            src={course.imagePath} 
+            src={getCourseImageSrc(course)} 
             alt={course.courseName}
             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                          onError={(e) => {
+                // Fallback to default image if the API image fails to load
+                const target = e.target as HTMLImageElement;
+                target.src = '/default-course.jpg';
+              }}
           />
           
           {/* Image overlay gradient */}

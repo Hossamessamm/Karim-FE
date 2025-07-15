@@ -3,6 +3,8 @@ import { unitCodeService } from '../services/unitCodeService';
 import {
   MyUnitCodeDto,
   UnitLessonDto,
+  UnitLessonWithProgressDto,
+  UnitWithProgressDto,
   LessonContent,
   UnitState
 } from '../types/unit';
@@ -15,6 +17,8 @@ interface UseUnitCodeReturn {
   lessons: UnitLessonDto[];
   currentLesson: UnitLessonDto | null;
   lessonContent: LessonContent | null;
+  // New state for unit with progress
+  unitWithProgress: UnitWithProgressDto | null;
   isLoading: boolean;
   isEnteringCode: boolean;
   error: string | null;
@@ -26,6 +30,8 @@ interface UseUnitCodeReturn {
   enterUnitCode: (code: string) => Promise<boolean>;
   getMyUnits: (page?: number, pageSize?: number) => Promise<void>;
   getUnitLessons: (unitId: number, page?: number, pageSize?: number) => Promise<void>;
+  // New method for getting unit with progress
+  getUnitWithProgress: (unitId: number) => Promise<void>;
   getLessonContent: (lessonId: number) => Promise<void>;
   setCurrentUnit: (unit: MyUnitCodeDto | null) => void;
   setCurrentLesson: (lesson: UnitLessonDto | null) => void;
@@ -52,6 +58,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
 
   const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
   const [unitDetails, setUnitDetails] = useState<{ unitName: string; unitTitle: string; courseName: string } | null>(null);
+  const [unitWithProgress, setUnitWithProgress] = useState<UnitWithProgressDto | null>(null);
   const [isEnteringCode, setIsEnteringCode] = useState(false);
 
   // Cache helper functions
@@ -243,6 +250,44 @@ const useUnitCode = (): UseUnitCodeReturn => {
     }
   }, []);
 
+  // Get unit with progress
+  const getUnitWithProgress = useCallback(async (unitId: number): Promise<void> => {
+    const cacheKey = `unit-with-progress-${unitId}`;
+    const cachedData = getCachedData(cacheKey);
+    
+    if (cachedData) {
+      setUnitWithProgress(cachedData);
+      return;
+    }
+
+    setState(prev => ({ ...prev, isLoading: true, error: null }));
+
+    try {
+      const response = await unitCodeService.getUnitWithProgress(unitId);
+      if (response.success && response.data) {
+        setUnitWithProgress(response.data);
+        
+        // Cache the response
+        setCachedData(cacheKey, response.data);
+      } else {
+        setState(prev => ({
+          ...prev,
+          error: response.message || 'فشل في جلب بيانات الوحدة',
+          isLoading: false,
+        }));
+      }
+    } catch (error: any) {
+      const errorMessage = unitCodeService.formatErrorMessage(error);
+      setState(prev => ({
+        ...prev,
+        error: errorMessage,
+        isLoading: false,
+      }));
+    } finally {
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, []);
+
   // Set current unit
   const setCurrentUnit = useCallback((unit: MyUnitCodeDto | null) => {
     setState(prev => ({ ...prev, currentUnit: unit, lessons: [], currentLesson: null }));
@@ -280,6 +325,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
     lessons: state.lessons,
     currentLesson: state.currentLesson,
     lessonContent,
+    unitWithProgress,
     isLoading: state.isLoading,
     isEnteringCode,
     error: state.error,
@@ -291,6 +337,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
     enterUnitCode,
     getMyUnits,
     getUnitLessons,
+    getUnitWithProgress,
     getLessonContent,
     setCurrentUnit,
     setCurrentLesson,

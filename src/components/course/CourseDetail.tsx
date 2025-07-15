@@ -5,6 +5,7 @@ import { useCourseApi, CourseDetails } from '../../hooks/useCourseApi';
 import { Curriculum } from './Curriculum';
 import { checkEnrollment } from '../../services/enrollmentService';
 import { getGradeInArabic, getTermInArabic } from '../../utils/gradeTranslations';
+import { BASE_URL } from '../../apiConfig';
 import axios from 'axios';
 
 interface ContactInfo {
@@ -26,6 +27,29 @@ const CourseDetail: React.FC = () => {
   const { isAuthenticated, currentUser } = useAuth();
   const navigate = useNavigate();
   const { fetchCourseDetailsWithoutProgress, isLoading, error, enrollInCourse } = useCourseApi();
+
+  // Helper function to construct course image URL
+  const getCourseImageSrc = (courseDetails: CourseDetails) => {
+    // If imagePath is null or undefined, use default image
+    if (!courseDetails.imagePath) {
+      return '/default-course.jpg';
+    }
+    
+    if (courseDetails.imagePath) {
+      // If imagePath is a relative path, prepend the API base URL
+      if (courseDetails.imagePath.startsWith('/') || courseDetails.imagePath.startsWith('images/')) {
+        return `${BASE_URL}${courseDetails.imagePath}`;
+      }
+      // If it's already a full URL, use it as is
+      if (courseDetails.imagePath.startsWith('http')) {
+        return courseDetails.imagePath;
+      }
+      // Otherwise, assume it's relative to the API base
+      return `${BASE_URL}${courseDetails.imagePath}`;
+    }
+    // Fallback to a default image if no image path is provided
+    return '/default-course.jpg';
+  };
   const [selectedSection, setSelectedSection] = useState('curriculum');
   const [courseDetails, setCourseDetails] = useState<CourseDetails | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
@@ -340,9 +364,14 @@ const CourseDetail: React.FC = () => {
                 <div className="kadence-blob absolute -bottom-8 left-20 w-full h-full bg-pink-500/30 rounded-full filter blur-3xl opacity-70 animate-blob animation-delay-4000"></div>
                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 transform hover:scale-[1.02] transition-all duration-500">
                   <img 
-                    src={courseDetails.imagePath} 
+                    src={getCourseImageSrc(courseDetails)} 
                     alt={courseDetails.courseName}
-                    className="w-full h-auto object-cover" 
+                    className="w-full h-auto object-cover"
+                    onError={(e) => {
+                      // Fallback to default image if the API image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.src = '/default-course.jpg';
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent"></div>
                 </div>

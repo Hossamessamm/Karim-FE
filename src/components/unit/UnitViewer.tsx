@@ -9,6 +9,7 @@ import { BASE_URL } from '../../apiConfig';
 import useScrollToTop from '../../hooks/useScrollToTop';
 import VideoWatermark from '../common/VideoWatermark';
 import { getUserPhoneNumber } from '../../utils/userWatermark';
+import { UnitLessonWithProgressDto } from '../../types/unit';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -135,6 +136,71 @@ const isBunnyVideo = (url: string): boolean => {
   return url.includes('iframe.mediadelivery.net');
 };
 
+// Helper function to check if a unit is accessible based on enrollment date
+const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessible: boolean; message?: string; daysLeft?: number } => {
+  if (!enrollmentDate) {
+    return { accessible: false, message: 'تاريخ التسجيل غير متوفر' };
+  }
+
+  const enrollment = new Date(enrollmentDate);
+  const now = new Date();
+  const daysSinceEnrollment = Math.floor((now.getTime() - enrollment.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Each unit is accessible for 7 days
+  const unitStartDay = unitIndex * 7;
+  const unitEndDay = (unitIndex + 1) * 7;
+  
+  // Check if we're in the access period for this unit
+  if (daysSinceEnrollment >= unitStartDay && daysSinceEnrollment < unitEndDay) {
+    const daysLeft = unitEndDay - daysSinceEnrollment;
+    return { accessible: true, daysLeft };
+  }
+  
+  // Check if the unit period hasn't started yet
+  if (daysSinceEnrollment < unitStartDay) {
+    const daysUntilStart = unitStartDay - daysSinceEnrollment;
+    return { 
+      accessible: false, 
+      message: `ستصبح هذه الوحدة متاحة خلال ${daysUntilStart} ${daysUntilStart === 1 ? 'يوم' : 'أيام'}` 
+    };
+  }
+  
+  // Unit access period has expired
+  return { 
+    accessible: false, 
+    message: 'انتهت فترة الوصول لهذه الوحدة' 
+  };
+};
+
+// Helper function to get unit access status message
+const getUnitAccessStatus = (unitIndex: number, enrollmentDate: string): { message: string; style: string } => {
+  const access = isUnitAccessible(unitIndex, enrollmentDate);
+  
+  if (access.accessible && access.daysLeft !== undefined) {
+    if (access.daysLeft <= 2) {
+      return {
+        message: `متاحة - يتبقى ${access.daysLeft} ${access.daysLeft === 1 ? 'يوم' : 'أيام'}`,
+        style: 'text-orange-600'
+      };
+    } else {
+      return {
+        message: `متاحة - يتبقى ${access.daysLeft} أيام`,
+        style: 'text-green-600'
+      };
+    }
+  } else if (access.message) {
+    return {
+      message: access.message,
+      style: 'text-red-600'
+    };
+  }
+  
+  return {
+    message: 'غير متاحة',
+    style: 'text-red-600'
+  };
+};
+
 const UnitViewer: React.FC = () => {
   useScrollToTop();
   const { unitId } = useParams<{ unitId: string }>();
@@ -143,7 +209,9 @@ const UnitViewer: React.FC = () => {
     lessons: unitLessons, 
     unitDetails,
     lessonContent, 
+    unitWithProgress,
     getUnitLessons, 
+    getUnitWithProgress,
     getLessonContent, 
     isLoading, 
     error 
@@ -155,7 +223,7 @@ const UnitViewer: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const playerRef = useRef<ReactPlayerType>(null);
-  const [selectedLesson, setSelectedLesson] = useState<UnitLessonDto | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<UnitLessonDto | UnitLessonWithProgressDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [volume, setVolume] = useState(1);
@@ -217,15 +285,15 @@ const UnitViewer: React.FC = () => {
     setUserPhoneNumber(phoneNumber);
   }, []);
 
-  // Load unit lessons
+  // Load unit lessons with progress
   useEffect(() => {
-    const loadUnitLessons = async () => {
+    const loadUnitWithProgress = async () => {
       if (unitId) {
         try {
           setLoading(true);
-          await getUnitLessons(parseInt(unitId));
+          await getUnitWithProgress(parseInt(unitId));
         } catch (err) {
-          console.error('Error loading unit lessons:', err);
+          console.error('Error loading unit with progress:', err);
           setLoadingError('حدث خطأ أثناء تحميل دروس الوحدة');
         } finally {
           setLoading(false);
@@ -233,37 +301,48 @@ const UnitViewer: React.FC = () => {
       }
     };
 
-    loadUnitLessons();
-  }, [unitId, getUnitLessons]);
+    loadUnitWithProgress();
+  }, [unitId, getUnitWithProgress]);
 
   // Handle lesson selection when lessons are loaded
   useEffect(() => {
-    if (unitLessons && unitLessons.length > 0) {
+    if (unitWithProgress && unitWithProgress.lessons && unitWithProgress.lessons.length > 0) {
+      // Check unit access based on enrollment date
+      // For now, we'll assume this is unit index 0 since we're viewing a single unit
+      // In a full course context, you would pass the actual unit index
+      const unitIndex = 0; // This should be passed as a prop or derived from context
+      const accessStatus = isUnitAccessible(unitIndex, unitWithProgress.enrollmentDate);
+      
+      if (!accessStatus.accessible) {
+        setLoadingError(accessStatus.message || 'الوحدة غير متاحة حالياً');
+        return;
+      }
+      
       // Check for URL parameters
       const lessonParam = searchParams.get('lesson');
       
       if (lessonParam) {
         const lessonIndex = parseInt(lessonParam);
         
-        if (!isNaN(lessonIndex) && lessonIndex >= 0 && lessonIndex < unitLessons.length) {
-          const lesson = unitLessons[lessonIndex];
+        if (!isNaN(lessonIndex) && lessonIndex >= 0 && lessonIndex < unitWithProgress.lessons.length) {
+          const lesson = unitWithProgress.lessons[lessonIndex];
           setActiveLesson(lessonIndex);
           setSelectedLesson(lesson);
           loadLessonContent(lesson.id);
         } else {
           // Load first lesson
           setActiveLesson(0);
-          setSelectedLesson(unitLessons[0]);
-          loadLessonContent(unitLessons[0].id);
+          setSelectedLesson(unitWithProgress.lessons[0]);
+          loadLessonContent(unitWithProgress.lessons[0].id);
         }
       } else {
         // Load first lesson
         setActiveLesson(0);
-        setSelectedLesson(unitLessons[0]);
-        loadLessonContent(unitLessons[0].id);
+        setSelectedLesson(unitWithProgress.lessons[0]);
+        loadLessonContent(unitWithProgress.lessons[0].id);
       }
     }
-  }, [unitLessons, searchParams]);
+  }, [unitWithProgress, searchParams]);
 
   // Load lesson content
   const loadLessonContent = async (lessonId: number) => {
@@ -281,8 +360,8 @@ const UnitViewer: React.FC = () => {
   };
 
   const handleLessonClick = async (lessonIndex: number) => {
-    if (unitLessons && lessonIndex >= 0 && lessonIndex < unitLessons.length) {
-      const lesson = unitLessons[lessonIndex];
+    if (unitWithProgress && unitWithProgress.lessons && lessonIndex >= 0 && lessonIndex < unitWithProgress.lessons.length) {
+      const lesson = unitWithProgress.lessons[lessonIndex];
       
       setSelectedLesson(lesson);
       setActiveLesson(lessonIndex);
@@ -453,13 +532,13 @@ const UnitViewer: React.FC = () => {
     );
   }
 
-  if (error || loadingError || !unitLessons || !unitLessons.length) {
+  if (error || loadingError || !unitWithProgress || !unitWithProgress.lessons || !unitWithProgress.lessons.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center p-8 max-w-md">
           <div className="text-6xl mb-4">🔍</div>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">الوحدة غير متوفرة</h2>
-          <p className="text-gray-600 mb-6">الوحدة التي تبحث عنها غير موجودة أو لا تحتوي على دروس.</p>
+          <p className="text-gray-600 mb-6">{loadingError || error || 'الوحدة التي تبحث عنها غير موجودة أو لا تحتوي على دروس.'}</p>
           <button 
             onClick={() => navigate('/my-lectures')}
             className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-200"
@@ -564,7 +643,13 @@ const UnitViewer: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">دروس الوحدة</h2>
-                  <p className="text-sm text-slate-500">{`${unitLessons ? unitLessons.length : 0} دروس`}</p>
+                  <p className="text-sm text-slate-500">{`${unitWithProgress?.lessons ? unitWithProgress.lessons.length : 0} دروس`}</p>
+                  {/* Show unit access status */}
+                  {unitWithProgress?.enrollmentDate && (
+                    <p className={`text-xs font-medium ${getUnitAccessStatus(0, unitWithProgress.enrollmentDate).style}`}>
+                      {getUnitAccessStatus(0, unitWithProgress.enrollmentDate).message}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -572,7 +657,7 @@ const UnitViewer: React.FC = () => {
             {/* Unit Lessons List */}
             <div className="overflow-y-auto flex-1 py-4">
               <div className="space-y-1">
-                {unitLessons && unitLessons.map((lesson, lessonIndex) => (
+                {unitWithProgress?.lessons && unitWithProgress.lessons.map((lesson, lessonIndex) => (
                   <button
                     key={lesson.id}
                     className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
@@ -606,6 +691,23 @@ const UnitViewer: React.FC = () => {
                           : 'text-slate-500'}>
                           {lesson.type === LessonType.Video ? 'فيديو' : 'اختبار'}
                         </span>
+                        {/* Show lesson progress */}
+                        {lesson.type === LessonType.Video && lesson.isCompleted && (
+                          <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            مكتمل
+                          </span>
+                        )}
+                        {lesson.type === LessonType.Quiz && lesson.isQuizSubmitted && (
+                          <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                            مُرسل
+                          </span>
+                        )}
                       </div>
                     </div>
                   </button>

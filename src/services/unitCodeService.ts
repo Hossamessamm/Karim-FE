@@ -3,8 +3,8 @@ import {
   UnitCodeResponse,
   MyUnitCodesResponse,
   UnitLessonsResponse,
-  LessonContentResponse,
-  EnterCodeForm
+  UnitWithProgressResponse,
+  LessonContentResponse
 } from '../types/unit';
 
 export class UnitCodeService {
@@ -80,6 +80,25 @@ export class UnitCodeService {
       console.error('Error fetching unit lessons:', error);
       throw new Error(
         error.response?.data?.message || 'فشل في جلب دروس الوحدة'
+      );
+    }
+  }
+
+  /**
+   * Get unit tree with progress information (New endpoint)
+   * @param unitId - The ID of the unit
+   * @returns Promise<UnitWithProgressResponse>
+   */
+  async getUnitWithProgress(unitId: number): Promise<UnitWithProgressResponse> {
+    try {
+      const response = await api.get<UnitWithProgressResponse>(
+        `/api/Course/tree-unit-with-progress?unitId=${unitId}`
+      );
+      return response.data;
+    } catch (error: any) {
+      console.error('Error fetching unit with progress:', error);
+      throw new Error(
+        error.response?.data?.message || 'فشل في جلب بيانات الوحدة'
       );
     }
   }
