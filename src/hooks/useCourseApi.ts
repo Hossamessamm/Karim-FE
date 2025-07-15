@@ -66,6 +66,7 @@ export interface CourseDetails {
   description: string;
   imagePath: string;
   modificationDate: string;
+  enrollmentDate: string;
   units: Unit[];
 }
 
@@ -558,7 +559,7 @@ export const useCourseApi = () => {
 
     try {
       const params = { courseid: courseId };
-      const key = getRequestKey('/api/Course/tree-with-progress', params);
+      const key = getRequestKey('/api/Course/tree-course-with-progress', params);
       // Check cache first, unless forceRefresh is true
       if (!forceRefresh) {
         const cached = getCachedResponse(key);
@@ -573,7 +574,7 @@ export const useCourseApi = () => {
         key,
         async () => {
           const apiResponse = await axios.get<ApiResponse<CourseDetails>>(
-            `${BASE_URL}api/Course/tree-with-progress`,
+            `${BASE_URL}api/Course/tree-course-with-progress`,
             {
               params,
               headers: { Authorization: `Bearer ${token}` }
@@ -670,7 +671,7 @@ export const useCourseApi = () => {
       const response = await executeRequest<ApiResponse<any>>(
         key,
         async () => {
-          const apiResponse = await api.get<ApiResponse<any>>(`/AdminStudent/Details/${lessonId}`);
+          const apiResponse = await api.get<ApiResponse<any>>(`/Student/contentlesson/${lessonId}`);
           return apiResponse.data;
         }
       );

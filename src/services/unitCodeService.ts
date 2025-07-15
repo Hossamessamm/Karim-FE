@@ -92,7 +92,7 @@ export class UnitCodeService {
   async getLessonContent(lessonId: number): Promise<LessonContentResponse> {
     try {
       const response = await api.get<LessonContentResponse>(
-        `/api/AdminStudent/Details/${lessonId}`
+        `/api/Student/contentlesson/${lessonId}`
       );
       return response.data;
     } catch (error: any) {

@@ -52,6 +52,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
+  // Map to track pending validation requests and prevent duplicates
+  const pendingValidations = new Map<string, Promise<boolean>>();
+  
   // Add function to update authentication state
   const updateAuthState = (authenticated: boolean, user: User | null = null, token: string | null = null) => {
     console.log('Updating auth state:', { authenticated, hasUser: !!user, hasToken: !!token });
@@ -95,27 +98,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Parse saved user to get ID
       const user = JSON.parse(savedUser);
       
-      // Use the enrolled courses endpoint to validate the token
-      const url = new URL(`${BASE_URL}api/Student/Student-Enrolled-Courses`);
-      url.searchParams.append('studentId', user.id);
-      url.searchParams.append('pagenumber', '1');
-      url.searchParams.append('pagesize', '1');
-
-      // Create a unique key for this validation request
-      const validationKey = `validation_${user.id}_${Date.now()}`;
-      const pendingValidations = new Map<string, Promise<boolean>>();
-
-      // Check for existing validation request
-      const existingValidation = pendingValidations.get(validationKey);
-      if (existingValidation) {
+      // If user state is already properly set and localStorage says authenticated,
+      // trust it and skip API validation (performance optimization)
+      if (currentUser && isAuthenticated && currentUser.id === user.id) {
+        console.log('User already authenticated and state is correct, skipping validation');
+        return true;
+      }
+      
+      // Create a unique key for this validation request to prevent duplicates
+      const validationKey = `validation_${user.id}`;
+      
+      // Check if there's already a pending validation for this user
+      if (pendingValidations.has(validationKey)) {
         console.log('Using existing validation request');
-        return existingValidation;
+        return pendingValidations.get(validationKey)!;
       }
 
       console.log('Making validation request...', {
         userId: user.id,
-        hasToken: !!token
+        hasToken: !!token,
+        reason: 'State not properly set or user mismatch'
       });
+
+      // Use the enrolled courses endpoint for token validation but with minimal data
+      const url = new URL(`${BASE_URL}api/Student/Student-Enrolled-Courses`);
+      url.searchParams.append('studentId', user.id);
+      url.searchParams.append('pagenumber', '1');
+      url.searchParams.append('pagesize', '1'); // Minimal data for validation
 
       const validationPromise = fetch(url, {
         method: 'GET',

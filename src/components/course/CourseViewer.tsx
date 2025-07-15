@@ -155,10 +155,67 @@ const clearCourseDetailsCache = (courseId: string) => {
   try {
     // The cache key must match the one used in useCourseApi
     const params = { courseid: courseId };
-    const key = '/api/Course/tree-with-progress?' + new URLSearchParams(params as any).toString();
+    const key = '/api/Course/tree-course-with-progress?' + new URLSearchParams(params as any).toString();
     // Note: Cache clearing is handled internally by useCourseApi
     // This function is kept for potential future use
   } catch (e) { /* ignore */ }
+};
+
+// Add these helper functions at the top of the component, after the existing helper functions
+
+// Helper function to check if a unit is accessible based on enrollment date
+const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessible: boolean; message?: string; daysLeft?: number } => {
+  if (!enrollmentDate) {
+    return { accessible: false, message: 'تاريخ التسجيل غير متوفر' };
+  }
+
+  const enrollment = new Date(enrollmentDate);
+  const now = new Date();
+  const daysSinceEnrollment = Math.floor((now.getTime() - enrollment.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Each unit is accessible for 7 days
+  const unitStartDay = unitIndex * 7;
+  const unitEndDay = (unitIndex + 1) * 7;
+  
+  // Check if we're in the access period for this unit
+  if (daysSinceEnrollment >= unitStartDay && daysSinceEnrollment < unitEndDay) {
+    const daysLeft = unitEndDay - daysSinceEnrollment;
+    return { accessible: true, daysLeft };
+  }
+  
+  // Check if the unit period hasn't started yet
+  if (daysSinceEnrollment < unitStartDay) {
+    const daysUntilStart = unitStartDay - daysSinceEnrollment;
+    return { 
+      accessible: false, 
+      message: `ستصبح هذه الوحدة متاحة خلال ${daysUntilStart} ${daysUntilStart === 1 ? 'يوم' : 'أيام'}` 
+    };
+  }
+  
+  // Unit period has ended
+  return { 
+    accessible: false, 
+    message: 'انتهت فترة الوصول لهذه الوحدة' 
+  };
+};
+
+// Helper function to get unit access status for display
+const getUnitAccessStatus = (unitIndex: number, enrollmentDate: string) => {
+  const status = isUnitAccessible(unitIndex, enrollmentDate);
+  
+  if (status.accessible && status.daysLeft !== undefined) {
+    return {
+      ...status,
+      statusText: `متاحة (${status.daysLeft} ${status.daysLeft === 1 ? 'يوم متبقي' : 'أيام متبقية'})`,
+      statusColor: status.daysLeft <= 2 ? 'text-orange-600' : 'text-green-600'
+    };
+  }
+  
+  return {
+    ...status,
+    statusText: status.message || 'غير متاحة',
+    statusColor: 'text-red-600'
+  };
 };
 
 const CourseViewer: React.FC = () => {
@@ -295,14 +352,47 @@ const CourseViewer: React.FC = () => {
  const findAndLoadFirstLesson = async (courseData: CourseDetails) => {
   const allLessons: { unitIndex: number; lessonIndex: number; lesson: Lesson }[] = [];
 
-  // Flatten all lessons with their indices
+  // Flatten all lessons with their indices, but only from accessible units
   courseData.units.forEach((unit, unitIndex) => {
-    unit.lessons.forEach((lesson, lessonIndex) => {
-      allLessons.push({ unitIndex, lessonIndex, lesson });
-    });
+    const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate);
+    if (unitAccess.accessible) {
+      unit.lessons.forEach((lesson, lessonIndex) => {
+        allLessons.push({ unitIndex, lessonIndex, lesson });
+      });
+    }
   });
 
-  // Find the last completed lesson (video or quiz)
+  // If no accessible lessons, find the first accessible unit and show message
+  if (allLessons.length === 0) {
+    for (let unitIndex = 0; unitIndex < courseData.units.length; unitIndex++) {
+      const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate);
+      if (unitAccess.message) {
+        setError(unitAccess.message);
+        return;
+      }
+    }
+    setError('لا توجد وحدات متاحة حالياً');
+    return;
+  }
+
+  // Check if all accessible lessons are completed
+  const allCompleted = allLessons.every(({ lesson }) => 
+    (lesson.type === 'Video' && lesson.isCompleted) || 
+    (lesson.type === 'Quiz' && lesson.isQuizSubmitted)
+  );
+
+  // If all accessible lessons are completed, load the first accessible lesson
+  if (allCompleted && allLessons.length > 0) {
+    const { unitIndex, lessonIndex, lesson } = allLessons[0];
+    setActiveUnit(unitIndex);
+    setActiveLesson(lessonIndex);
+    setSelectedLesson(lesson);
+    await loadLessonDetails(lesson.id);
+    navigate(`/course-player/${courseId}?unit=${unitIndex}&lesson=${lessonIndex}`, { replace: true });
+    return;
+  }
+
+  // Find the last completed lesson (video or quiz) among accessible lessons
   let lastCompletedIdx = -1;
   for (let i = 0; i < allLessons.length; i++) {
     const { lesson } = allLessons[i];
@@ -316,7 +406,7 @@ const CourseViewer: React.FC = () => {
   if (nextIndex < allLessons.length) {
     const { unitIndex, lessonIndex, lesson } = allLessons[nextIndex];
 
-    // Check for locking conditions
+    // Check for locking conditions within the same unit
     let lock = false;
     if (lessonIndex > 0) {
       const prevLesson = courseData.units[unitIndex].lessons[lessonIndex - 1];
@@ -335,7 +425,7 @@ const CourseViewer: React.FC = () => {
     }
   }
 
-  // Fallback: first available unlocked, not completed lesson
+  // Fallback: first available unlocked, not completed lesson among accessible lessons
   for (let i = 0; i < allLessons.length; i++) {
     const { unitIndex, lessonIndex, lesson } = allLessons[i];
     let lock = false;
@@ -359,8 +449,19 @@ const CourseViewer: React.FC = () => {
     }
   }
 
+  // Final fallback: if no incomplete lessons found, load the first accessible lesson
+  if (allLessons.length > 0) {
+    const { unitIndex, lessonIndex, lesson } = allLessons[0];
+    setActiveUnit(unitIndex);
+    setActiveLesson(lessonIndex);
+    setSelectedLesson(lesson);
+    await loadLessonDetails(lesson.id);
+    navigate(`/course-player/${courseId}?unit=${unitIndex}&lesson=${lessonIndex}`, { replace: true });
+    return;
+  }
+
   // Nothing available
-  setError('لا توجد دروس متاحة في هذه الدورة حالياً');
+  setError('لا توجد دروس متاحة حالياً');
 };
 
   // Separate function to load lesson details
@@ -468,6 +569,13 @@ const CourseViewer: React.FC = () => {
       return;
     }
 
+    // Check if unit is accessible
+    const unitAccess = isUnitAccessible(unitIndex, courseDetails.enrollmentDate);
+    if (!unitAccess.accessible) {
+      setError(unitAccess.message || 'هذه الوحدة غير متاحة حالياً');
+      return;
+    }
+
     const unit = courseDetails.units[unitIndex];
     if (!unit || !unit.lessons || lessonIndex >= unit.lessons.length) {
       console.error('Invalid unit or lesson index:', { unitIndex, lessonIndex, unit });
@@ -482,6 +590,7 @@ const CourseViewer: React.FC = () => {
     setActiveUnit(unitIndex);
     setActiveLesson(lessonIndex);
     setIsMenuOpen(false);
+    setError(null); // Clear any previous errors
     
     // Update URL and load lesson details
     searchParams.set('unit', unitIndex.toString());
@@ -870,99 +979,128 @@ const CourseViewer: React.FC = () => {
             
             {/* Course Units List */}
             <div className="overflow-y-auto flex-1 py-4">
-              {courseDetails?.units.map((unit, unitIndex) => (
-                <div key={unit.id} className="mb-4">
-                  <button
-                    className="w-full px-6 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors"
-                    onClick={() => toggleUnit(unit.id.toString())}
-                  >
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/10 to-blue-600/20 flex items-center justify-center">
-                      <span className="text-blue-700 text-sm font-medium">{unitIndex + 1}</span>
-                        </div>
-                    <div className="flex-1 text-left">
-                      <h3 className="font-medium text-slate-900">{unit.unitName}</h3>
-                      <p className="text-sm text-slate-500">{`${unit.lessons.length} Lessons`}</p>
-                      </div>
-                      <svg 
-                      className={`w-5 h-5 text-slate-400 transition-transform ${collapsedUnits.includes(unit.id.toString()) ? '' : 'rotate-180'}`}
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
+              {courseDetails?.units.map((unit, unitIndex) => {
+                const unitAccess = getUnitAccessStatus(unitIndex, courseDetails.enrollmentDate);
+                const isUnitLocked = !unitAccess.accessible;
+                
+                return (
+                  <div key={unit.id} className="mb-4">
+                    <button
+                      className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
+                        ${isUnitLocked 
+                          ? 'opacity-60 cursor-not-allowed bg-gray-50' 
+                          : 'hover:bg-slate-50'}`}
+                      onClick={() => !isUnitLocked && toggleUnit(unit.id.toString())}
+                      disabled={isUnitLocked}
+                    >
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center
+                        ${isUnitLocked 
+                          ? 'bg-gray-200' 
+                          : 'bg-gradient-to-br from-blue-500/10 to-blue-600/20'}`}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                  </button>
-                  
-                  <div className={`space-y-1 mt-1 ${collapsedUnits.includes(unit.id.toString()) ? 'hidden' : ''}`}>
-                    {(() => {
-                      let lock = false;
-                      return unit.lessons.map((lesson, lessonIndex) => {
-                        // If previous lesson is a quiz and not submitted, lock this and all next lessons
-                        if (lessonIndex > 0) {
-                          const prevLesson = unit.lessons[lessonIndex - 1];
-                          if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
-                            lock = true;
-                          }
-                        }
-                        // If this lesson is a quiz and not submitted, lock all after it
-                        if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
-                          // The quiz itself is not locked, but next lessons will be
-                        }
-                        const isLocked = lock && !(activeUnit === unitIndex && activeLesson === lessonIndex);
-                        return (
-                          <button
-                            key={lesson.id}
-                            className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
-                              ${activeUnit === unitIndex && activeLesson === lessonIndex 
-                                ? 'bg-blue-50 text-blue-700' 
-                                : isLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 text-slate-700'}`}
-                            onClick={() => !isLocked && handleLessonClick(unitIndex, lessonIndex)}
-                            disabled={isLocked}
-                          >
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center
-                              ${activeUnit === unitIndex && activeLesson === lessonIndex 
-                                ? 'bg-blue-100' 
-                                : 'bg-slate-100'}`}
-                            >
-                                {lesson.type === 'Video' && lesson.isCompleted ? (
-                                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                              ) : lesson.type === 'Video' ? (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                </svg>
-                                ) : (
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
-                                )}
-                              </div>
-                            <div className="flex-1 text-left">
-                              <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
-                              <div className="flex items-center gap-2 text-sm">
-                                <span className={activeUnit === unitIndex && activeLesson === lessonIndex 
-                                  ? 'text-blue-600' 
-                                  : 'text-slate-500'}>
-                                  {lesson.type === 'Video' ? 'Video Lesson' : 'Quiz'}
-                                </span>
-                                {completedLessons.includes(lesson.id.toString()) && (
-                                  <>
-                                    <span className="text-slate-300">•</span>
-                                    <span className="text-green-600">Completed</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      });
-                    })()}
+                        {isUnitLocked ? (
+                          <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                          </svg>
+                        ) : (
+                          <span className="text-blue-700 text-sm font-medium">{unitIndex + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <h3 className={`font-medium ${isUnitLocked ? 'text-gray-500' : 'text-slate-900'}`}>
+                          {unit.unitName}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm ${isUnitLocked ? 'text-gray-400' : 'text-slate-500'}`}>
+                            {`${unit.lessons.length} Lessons`}
+                          </p>
+                          <span className={`text-xs font-medium ${unitAccess.statusColor}`}>
+                            {unitAccess.statusText}
+                          </span>
+                        </div>
+                      </div>
+                      {!isUnitLocked && (
+                        <svg 
+                          className={`w-5 h-5 text-slate-400 transition-transform ${collapsedUnits.includes(unit.id.toString()) ? '' : 'rotate-180'}`}
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </button>
+                    
+                    {!isUnitLocked && (
+                      <div className={`space-y-1 mt-1 ${collapsedUnits.includes(unit.id.toString()) ? 'hidden' : ''}`}>
+                        {(() => {
+                          let lock = false;
+                          return unit.lessons.map((lesson, lessonIndex) => {
+                            // If previous lesson is a quiz and not submitted, lock this and all next lessons
+                            if (lessonIndex > 0) {
+                              const prevLesson = unit.lessons[lessonIndex - 1];
+                              if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
+                                lock = true;
+                              }
+                            }
+                            const isLessonLocked = lock && !(activeUnit === unitIndex && activeLesson === lessonIndex);
+                            
+                            return (
+                              <button
+                                key={lesson.id}
+                                className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
+                                  ${activeUnit === unitIndex && activeLesson === lessonIndex 
+                                    ? 'bg-blue-50 text-blue-700' 
+                                    : isLessonLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 text-slate-700'}`}
+                                onClick={() => !isLessonLocked && handleLessonClick(unitIndex, lessonIndex)}
+                                disabled={isLessonLocked}
+                              >
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center
+                                  ${activeUnit === unitIndex && activeLesson === lessonIndex 
+                                    ? 'bg-blue-100' 
+                                    : 'bg-slate-100'}`}
+                                >
+                                  {lesson.type === 'Video' && lesson.isCompleted ? (
+                                    <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  ) : lesson.type === 'Video' ? (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                  )}
+                                </div>
+                                <div className="flex-1 text-left">
+                                  <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <span className={activeUnit === unitIndex && activeLesson === lessonIndex 
+                                      ? 'text-blue-600' 
+                                      : 'text-slate-500'}>
+                                      {lesson.type === 'Video' ? 'Video Lesson' : 'Quiz'}
+                                    </span>
+                                    {completedLessons.includes(lesson.id.toString()) && (
+                                      <>
+                                        <span className="text-slate-300">•</span>
+                                        <span className="text-green-600">Completed</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              </button>
+                            );
+                          });
+                        })()}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </aside>

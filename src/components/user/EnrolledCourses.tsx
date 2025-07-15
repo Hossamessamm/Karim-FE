@@ -37,61 +37,86 @@ const EnrolledCourses: React.FC = () => {
   const pageSize = 10; // Updated to match API default
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  
+  // Add request deduplication
+  const pendingRequests = React.useRef(new Map<string, Promise<void>>());
 
   useEffect(() => {
     fetchCourses();
   }, [currentPage, currentUser?.id]);
 
   const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setError('لم يتم العثور على رمز المصادقة. الرجاء تسجيل الدخول مرة أخرى.');
-        return;
-      }
+    // Create a unique key for this request to prevent duplicates
+    const requestKey = `courses_${currentUser?.id}_${currentPage}_${pageSize}`;
+    
+    // Check if there's already a pending request for this key
+    if (pendingRequests.current.has(requestKey)) {
+      console.log('Request already in progress, skipping duplicate call');
+      return pendingRequests.current.get(requestKey);
+    }
 
-      const response = await fetch(
-        `${BASE_URL}api/Student/Student-Enrolled-Courses?studentId=${currentUser?.id}&pagenumber=${currentPage}&pagesize=${pageSize}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-        }
-      );
-
-      if (!response.ok) {
-      if (response.status === 401) {
-        setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
-        navigate('/login');
-        return;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: ApiResponse = await response.json();
+    const requestPromise = (async () => {
+      try {
+        setLoading(true);
+        setError(null);
         
-      if (data.success && data.data) {
-          setCourses(data.data.courses);
-          setTotalPages(data.data.totalPages);
-        setTotalCount(data.data.totalCount);
-      } else {
-        setError(data.message || 'حدث خطأ أثناء جلب الدورات');
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+          setError('لم يتم العثور على رمز المصادقة. الرجاء تسجيل الدخول مرة أخرى.');
+          return;
+        }
+
+        console.log('Fetching enrolled courses:', { userId: currentUser?.id, page: currentPage });
+
+        const response = await fetch(
+          `${BASE_URL}api/Student/Student-Enrolled-Courses?studentId=${currentUser?.id}&pagenumber=${currentPage}&pagesize=${pageSize}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+          }
+        );
+
+        if (!response.ok) {
+        if (response.status === 401) {
+          setError('انتهت صلاحية الجلسة. الرجاء تسجيل الدخول مرة أخرى.');
+          navigate('/login');
+          return;
+          }
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: ApiResponse = await response.json();
+          
+        if (data.success && data.data) {
+            setCourses(data.data.courses);
+            setTotalPages(data.data.totalPages);
+          setTotalCount(data.data.totalCount);
+        } else {
+          setError(data.message || 'حدث خطأ أثناء جلب الدورات');
+          setCourses([]);
+          setTotalPages(1);
+          setTotalCount(0);
+        }
+      } catch (err) {
+        console.error('Error fetching courses:', err);
+        setError('حدث خطأ أثناء جلب الدورات');
         setCourses([]);
         setTotalPages(1);
         setTotalCount(0);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Error fetching courses:', err);
-      setError('حدث خطأ أثناء جلب الدورات');
-      setCourses([]);
-      setTotalPages(1);
-      setTotalCount(0);
+    })();
+    
+    // Store the promise and clean it up when done
+    pendingRequests.current.set(requestKey, requestPromise);
+    
+    try {
+      await requestPromise;
     } finally {
-      setLoading(false);
+      pendingRequests.current.delete(requestKey);
     }
   };
 
