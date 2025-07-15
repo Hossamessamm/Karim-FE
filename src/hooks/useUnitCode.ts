@@ -11,6 +11,7 @@ interface UseUnitCodeReturn {
   // State
   units: MyUnitCodeDto[];
   currentUnit: MyUnitCodeDto | null;
+  unitDetails: { unitName: string; unitTitle: string; courseName: string } | null;
   lessons: UnitLessonDto[];
   currentLesson: UnitLessonDto | null;
   lessonContent: LessonContent | null;
@@ -50,6 +51,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
   });
 
   const [lessonContent, setLessonContent] = useState<LessonContent | null>(null);
+  const [unitDetails, setUnitDetails] = useState<{ unitName: string; unitTitle: string; courseName: string } | null>(null);
   const [isEnteringCode, setIsEnteringCode] = useState(false);
 
   // Cache helper functions
@@ -169,6 +171,9 @@ const useUnitCode = (): UseUnitCodeReturn => {
         ...prev,
         lessons: cachedData.lessons,
       }));
+      if (cachedData.unitDetails) {
+        setUnitDetails(cachedData.unitDetails);
+      }
       return;
     }
 
@@ -177,7 +182,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
     try {
       const response = await unitCodeService.getUnitLessons(unitId, page, pageSize);
       if (response.success && response.data) {
-        const { lessons } = response.data;
+        const { lessons, unitName, unitTitle, courseName } = response.data;
         
         setState(prev => ({
           ...prev,
@@ -185,8 +190,12 @@ const useUnitCode = (): UseUnitCodeReturn => {
           isLoading: false,
         }));
 
-        // Cache the response
-        setCachedData(cacheKey, { lessons: lessons });
+        // Store unit details
+        const unitDetailsData = { unitName, unitTitle, courseName };
+        setUnitDetails(unitDetailsData);
+
+        // Cache the response including unit details
+        setCachedData(cacheKey, { lessons: lessons, unitDetails: unitDetailsData });
       } else {
         setState(prev => ({
           ...prev,
@@ -267,6 +276,7 @@ const useUnitCode = (): UseUnitCodeReturn => {
     // State
     units: state.units,
     currentUnit: state.currentUnit,
+    unitDetails,
     lessons: state.lessons,
     currentLesson: state.currentLesson,
     lessonContent,
