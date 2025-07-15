@@ -7,6 +7,8 @@ import { QuizContent } from '../quiz/QuizContent';
 import axios from 'axios';
 import { BASE_URL } from '../../apiConfig';
 import useScrollToTop from '../../hooks/useScrollToTop';
+import VideoWatermark from '../common/VideoWatermark';
+import { getUserPhoneNumber } from '../../utils/userWatermark';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -166,6 +168,7 @@ const UnitViewer: React.FC = () => {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [showBravo, setShowBravo] = useState(false);
+  const [userPhoneNumber, setUserPhoneNumber] = useState<string | null>(null);
 
   const playbackSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
 
@@ -206,6 +209,12 @@ const UnitViewer: React.FC = () => {
         clearTimeout(controlsTimerRef.current);
       }
     };
+  }, []);
+
+  // Get user phone number for watermark
+  useEffect(() => {
+    const phoneNumber = getUserPhoneNumber();
+    setUserPhoneNumber(phoneNumber);
   }, []);
 
   // Load unit lessons
@@ -636,6 +645,16 @@ const UnitViewer: React.FC = () => {
                       onClick={showControlsTemporarily}
                     >
                       <div className={`${isFullscreen ? 'h-full' : 'aspect-video'} bg-slate-900`}>
+                        {/* Floating Watermark */}
+                        {userPhoneNumber && (
+                          <VideoWatermark 
+                            phoneNumber={userPhoneNumber} 
+                            isVisible={true}
+                            opacity={0.6}
+                            speed={30}
+                          />
+                        )}
+                        
                         {isBunnyVideo((lessonContent as any).videoUrl) ? (
                           <BunnyVideoPlayer
                             url={(lessonContent as any).videoUrl}
