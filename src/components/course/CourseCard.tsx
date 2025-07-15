@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Course } from '../../hooks/useCourseApi';
 import { Star, BookOpen, ArrowLeft, Sparkles } from 'lucide-react';
+import { getTermInArabic } from '../../utils/gradeTranslations';
 
 const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
   const formattedPrice = (course.price ?? 0).toFixed(2);
@@ -37,7 +38,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
           
           {/* Course type badge */}
           <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-medium border border-white/30">
-            {course.term === 'First' ? 'الترم الأول' : 'الترم الثاني'}
+            {getTermInArabic(course.term || 'First')}
           </div>
           
           {/* Floating elements */}

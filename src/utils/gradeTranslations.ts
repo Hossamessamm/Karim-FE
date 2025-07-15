@@ -17,6 +17,20 @@ export const getGradeInArabic = (grade: string): string => {
   return gradeMap[grade] || grade;
 };
 
+// Function to get term in Arabic
+export const getTermInArabic = (term: string): string => {
+  const termMap: { [key: string]: string } = {
+    'First': 'الترم الأول',
+    'Second': 'الترم الثاني',
+    'first': 'الترم الأول',
+    'second': 'الترم الثاني',
+    '1': 'الترم الأول',
+    '2': 'الترم الثاني'
+  };
+
+  return termMap[term] || term;
+};
+
 // Function to get recommended courses text
 export const getRecommendedCoursesText = (grade: string): string => {
   return `الدورات المقترحة للصف ${getGradeInArabic(grade)}`;

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useCourseApi, CourseDetails } from '../../hooks/useCourseApi';
 import { Curriculum } from './Curriculum';
 import { checkEnrollment } from '../../services/enrollmentService';
+import { getGradeInArabic, getTermInArabic } from '../../utils/gradeTranslations';
 import axios from 'axios';
 
 interface ContactInfo {
@@ -196,7 +197,7 @@ const CourseDetail: React.FC = () => {
             <div className="text-center md:text-right">
               <div className="inline-flex items-center px-4 py-2 bg-teal-500/20 rounded-full mb-6 gap-2">
                 <span className="w-2 h-2 rounded-full bg-teal-400"></span>
-                <span className="text-teal-300 text-sm font-medium">الصف {courseDetails.grade}</span>
+                <span className="text-teal-300 text-sm font-medium">{getGradeInArabic(courseDetails.grade)}</span>
                 <span className="mx-2">•</span>
                 <span className="text-teal-300 text-sm font-medium">{totalLessons} درس</span>
               </div>
@@ -342,7 +343,7 @@ const CourseDetail: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-slate-700">الصف: {courseDetails.grade}</span>
+                        <span className="text-slate-700">الصف: {getGradeInArabic(courseDetails.grade)}</span>
                       </li>
                       <li className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -350,7 +351,7 @@ const CourseDetail: React.FC = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
-                        <span className="text-slate-700">الفصل الدراسي: {courseDetails.term}</span>
+                        <span className="text-slate-700">الفصل الدراسي: {getTermInArabic(courseDetails.term)}</span>
                       </li>
                       <li className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
