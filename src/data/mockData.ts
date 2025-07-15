@@ -1314,4 +1314,4 @@ export const users: User[] = [
   }
 ];
 
-export const grades = ["1st", "2nd", "3rd"]; 
+export const grades = ["Secondary1", "Secondary2", "Secondary3"]; 

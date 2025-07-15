@@ -11,7 +11,10 @@ export const getGradeInArabic = (grade: string): string => {
     'secondary3': 'الصف الثالث الثانوي',
     'Secondary1': 'الصف الأول الثانوي',
     'Secondary2': 'الصف الثاني الثانوي',
-    'Secondary3': 'الصف الثالث الثانوي'
+    'Secondary3': 'الصف الثالث الثانوي',
+    '1st': 'الصف الأول الثانوي',
+    '2nd': 'الصف الثاني الثانوي',
+    '3rd': 'الصف الثالث الثانوي'
   };
 
   return gradeMap[grade] || grade;
