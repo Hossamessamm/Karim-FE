@@ -72,9 +72,7 @@ const UnitCard: React.FC<UnitCardProps> = ({ unit }) => {
           </h3>
           
           {/* Unit subtitle */}
-          <p className="text-gray-600 text-sm mb-4 text-center leading-relaxed">
-            {unit.unitTitle}
-          </p>
+         
           
           {/* Course info */}
           <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-4 mb-6 border border-emerald-100">
