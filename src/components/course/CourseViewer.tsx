@@ -15,6 +15,7 @@ import { BASE_URL } from '../../apiConfig';
 import VideoWatermark from '../common/VideoWatermark';
 import { getUserPhoneNumber } from '../../utils/userWatermark';
 import UnitAccessTimer from '../common/UnitAccessTimer';
+import { getTenantHeaders } from '../../config/tenant';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -848,6 +849,7 @@ const CourseViewer: React.FC = () => {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
+            ...getTenantHeaders()
           },
         }
       );
