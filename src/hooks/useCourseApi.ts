@@ -631,11 +631,10 @@ export const useCourseApi = () => {
       const response = await executeRequest<ApiResponse<CourseDetails>>(
         key,
         async () => {
-          const apiResponse = await axios.get<ApiResponse<CourseDetails>>(
-            `${BASE_URL}api/Course/tree`,
+          const apiResponse = await api.get<ApiResponse<CourseDetails>>(
+            `/Course/tree`,
             {
-              params,
-              headers: { Authorization: `Bearer ${token}` }
+              params
             }
           );
           return apiResponse.data;
