@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { User } from '../types';
 import { authService } from '../services/api';
 import { BASE_URL } from '../apiConfig';
+import { getTenantHeaders } from '../config/tenant';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -130,7 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         method: 'GET',
         headers: {
           'accept': '*/*',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          ...getTenantHeaders()
         }
       }).then(response => {
         console.log('Validation response:', {

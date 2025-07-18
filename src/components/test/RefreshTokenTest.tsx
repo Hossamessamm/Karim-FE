@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authService } from '../../services/api';
+import { TenantHeaderTest } from './TenantHeaderTest';
 
 const RefreshTokenTest: React.FC = () => {
   const [testResult, setTestResult] = useState<string>('');
@@ -93,6 +94,11 @@ const RefreshTokenTest: React.FC = () => {
             </li>
           </ol>
         </div>
+      </div>
+      
+      {/* Add Tenant Header Test Component */}
+      <div className="mt-8">
+        <TenantHeaderTest />
       </div>
     </div>
   );

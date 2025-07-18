@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
                     className={`${navLinkClasses('/courses')} cursor-pointer`}
                   >
                     <BookOpen className="w-4 h-4 inline-block ml-2" />
-                    الدورات
+                    الباقات
                   </button>
                   
                   {isAuthenticated && (
@@ -71,14 +71,14 @@ const Navbar: React.FC = () => {
                         className={navLinkClasses('/my-lectures')}
                       >
                         <PlayCircle className="w-4 h-4 inline-block ml-2" />
-                        محاضراتي
+                        محاضرات السنتر
                       </Link>
                       <Link
                         to="/enrolled-courses"
                         className={navLinkClasses('/enrolled-courses')}
                       >
                         <GraduationCap className="w-4 h-4 inline-block ml-2" />
-                        دوراتي
+                        باقاتي
                       </Link>
                     </>
                   )}
@@ -96,7 +96,7 @@ const Navbar: React.FC = () => {
                       }`}
                     >
                       <PlayCircle className="w-4 h-4 inline-block ml-1" />
-                      محاضراتي
+                      محاضرات السنتر
                     </Link>
                     <Link
                       to="/enrolled-courses"
@@ -221,7 +221,7 @@ const Navbar: React.FC = () => {
                 className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-300"
               >
                 <BookOpen className="w-5 h-5" />
-                الدورات
+                الباقات
               </button>
               
               {/* Mobile auth section */}

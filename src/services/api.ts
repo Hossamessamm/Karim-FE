@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getDeviceId } from '../utils/deviceId';
+import { getTenantHeaders } from '../config/tenant';
 
 // Update to use the proxy setup in setupProxy.js instead of direct URL
 const API_URL = 'https://api.ibrahim-magdy.com';
@@ -35,6 +36,10 @@ api.interceptors.request.use(
     // Add device ID to headers
     config.headers = config.headers || {};
     config.headers['DeviceId'] = getDeviceId();
+    
+    // Add tenant headers
+    const tenantHeaders = getTenantHeaders();
+    Object.assign(config.headers, tenantHeaders);
     
     // Add Authorization header if we have a token
     const token = localStorage.getItem('auth_token');
@@ -88,7 +93,8 @@ api.interceptors.response.use(
             'Authorization': currentToken ? `Bearer ${currentToken}` : '',
             'DeviceId': getDeviceId(),
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            ...getTenantHeaders()
           }
         });
 
@@ -281,7 +287,8 @@ export const authService = {
             'Authorization': currentToken ? `Bearer ${currentToken}` : '',
             'DeviceId': getDeviceId(),
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            ...getTenantHeaders()
           }
         });
         

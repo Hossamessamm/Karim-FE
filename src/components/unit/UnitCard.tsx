@@ -88,7 +88,7 @@ const UnitCard: React.FC<UnitCardProps> = ({ unit }) => {
               to={`/unit-viewer/${unit.unitId}`}
               className="group/btn relative inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 transform hover:scale-105 overflow-hidden"
             >
-              <span className="relative z-10">دخول الوحدة</span>
+              <span className="relative z-10">دخول المحاضرة</span>
               <Play className="w-4 h-4 relative z-10 transform group-hover/btn:translate-x-1 transition-transform" />
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-teal-700 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
             </Link>

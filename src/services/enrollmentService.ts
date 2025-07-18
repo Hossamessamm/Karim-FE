@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getTenantHeaders } from '../config/tenant';
 
 const API_BASE_URL = 'https://api.ibrahim-magdy.com/api';
 
@@ -15,7 +16,8 @@ export const checkEnrollment = async (studentId: string, courseId: string): Prom
       {
         headers: {
           'accept': '*/*',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          ...getTenantHeaders()
         }
       }
     );

@@ -10,6 +10,7 @@ import useScrollToTop from '../../hooks/useScrollToTop';
 import VideoWatermark from '../common/VideoWatermark';
 import { getUserPhoneNumber } from '../../utils/userWatermark';
 import { UnitLessonWithProgressDto } from '../../types/unit';
+import UnitAccessTimer from '../common/UnitAccessTimer';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -737,6 +738,15 @@ const UnitViewer: React.FC = () => {
               </div>
             ) : selectedLesson && lessonContent ? (
               <div className="space-y-6">
+                {/* Unit Access Timer */}
+                {unitWithProgress && (
+                  <UnitAccessTimer 
+                    unitIndex={unitWithProgress.order - 1} // Convert 1-based to 0-based index
+                    enrollmentDate={unitWithProgress.enrollmentDate}
+                    className="mb-6"
+                  />
+                )}
+                
                 {selectedLesson.type === LessonType.Video && lessonContent && 'videoUrl' in lessonContent && (
                   <>
                     <div 

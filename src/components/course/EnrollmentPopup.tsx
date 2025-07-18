@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCourseApi } from '../../hooks/useCourseApi';
 import { useAuth } from '../../contexts/AuthContext';
 import axios from 'axios';
+import { getTenantHeaders } from '../../config/tenant';
 
 interface ContactInfo {
   id: number;
@@ -39,7 +40,11 @@ const EnrollmentPopup: React.FC<EnrollmentPopupProps> = ({ isOpen, onClose, cour
   useEffect(() => {
     const fetchWhatsAppNumber = async () => {
       try {
-        const response = await axios.get<ContactApiResponse>('https://api.ibrahim-magdy.com/api/Contact/getAll');
+        const response = await axios.get<ContactApiResponse>('https://api.ibrahim-magdy.com/api/Contact/getAll', {
+          headers: {
+            ...getTenantHeaders()
+          }
+        });
         if (response.data.success && response.data.data.length > 0) {
           setWhatsappNumber(response.data.data[0].whatsApp_Number);
         }

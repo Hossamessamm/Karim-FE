@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import ApiErrorAlert from '../common/ApiErrorAlert';
+import { getTenantHeaders } from '../../config/tenant';
 import { Mail, Lock, Eye, EyeOff, GraduationCap, Sparkles, BookOpen, Star } from 'lucide-react';
 
 // Define the login result type based on the AuthContext
@@ -75,7 +76,11 @@ const Login: React.FC = () => {
 
   const handleContactSupport = () => {
     // Fetch WhatsApp number and redirect to WhatsApp
-    fetch('https://api.ibrahim-magdy.com/api/Contact/getAll')
+    fetch('https://api.ibrahim-magdy.com/api/Contact/getAll', {
+      headers: {
+        ...getTenantHeaders()
+      }
+    })
       .then(response => response.json())
       .then(data => {
         if (data.success && data.data.length > 0) {

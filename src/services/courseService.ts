@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { BASE_URL } from '../apiConfig';
 import api from './api';
+import { getTenantHeaders } from '../config/tenant';
 
 export interface Course {
   id: string;
@@ -40,6 +41,9 @@ export const getCourses = async (
           pagenumber: pageNumber,
           pagesize: pageSize,
         },
+        headers: {
+          ...getTenantHeaders()
+        }
       }
     );
     return response.data;
@@ -62,7 +66,7 @@ interface QuizResultResponse {
 
 export const submitQuizResult = async (result: QuizResultSubmission): Promise<QuizResultResponse> => {
   try {
-    const response = await api.post<QuizResultResponse>('https://api.ibrahim-magdy.com/api/quizresult/submit', result);
+    const response = await api.post<QuizResultResponse>('/api/quizresult/submit', result);
     return response.data;
   } catch (error: any) {
     if (error.response?.status === 401) {

@@ -170,7 +170,7 @@ export const QuizContent: React.FC<QuizContentProps> = ({ questions, onComplete,
             
             {score && (
               <div className="bg-gray-50 rounded-xl p-6 max-w-sm mx-auto mb-6">
-                <div className="text-4xl font-bold text-primary mb-2">{score.percentage}%</div>
+                <div className="text-4xl font-bold text-primary mb-2">{score.correct} من {score.total}</div>
                 <div className="text-gray-600">
                   <span className="font-medium text-gray-900">{score.correct}</span> إجابات صحيحة من{' '}
                   <span className="font-medium text-gray-900">{score.total}</span> أسئلة

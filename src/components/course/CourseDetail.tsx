@@ -7,6 +7,7 @@ import { checkEnrollment } from '../../services/enrollmentService';
 import { getGradeInArabic, getTermInArabic } from '../../utils/gradeTranslations';
 import { BASE_URL } from '../../apiConfig';
 import axios from 'axios';
+import { getTenantHeaders } from '../../config/tenant';
 
 interface ContactInfo {
   id: number;
@@ -96,7 +97,11 @@ const CourseDetail: React.FC = () => {
   useEffect(() => {
     const fetchWhatsAppNumber = async () => {
       try {
-        const response = await axios.get<ContactApiResponse>('https://api.ibrahim-magdy.com/api/Contact/getAll');
+        const response = await axios.get<ContactApiResponse>('https://api.ibrahim-magdy.com/api/Contact/getAll', {
+          headers: {
+            ...getTenantHeaders()
+          }
+        });
         if (response.data.success && response.data.data.length > 0) {
           setWhatsappNumber(response.data.data[0].whatsApp_Number);
         }

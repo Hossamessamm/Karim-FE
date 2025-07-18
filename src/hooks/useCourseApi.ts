@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '../apiConfig';
+import { getTenantHeaders } from '../config/tenant';
 
 export type QuestionType = 'multiple_choice' | 'true_false';
 
@@ -334,6 +335,13 @@ api.interceptors.request.use((config) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  
+  // Add tenant headers
+  if (config.headers) {
+    const tenantHeaders = getTenantHeaders();
+    Object.assign(config.headers, tenantHeaders);
+  }
+  
   return config;
 });
 
@@ -525,16 +533,13 @@ export const useCourseApi = () => {
         throw new Error('Authentication required');
       }
 
-      const response = await axios.get<ApiResponse<CourseListData>>(
-        `${BASE_URL}/Student/Student-Enrolled-Courses`,
+      const response = await api.get<ApiResponse<CourseListData>>(
+        `/Student/Student-Enrolled-Courses`,
         {
           params: {
             studentId,
             pagenumber: pageNumber,
             pagesize: pageSize
-          },
-          headers: {
-            Authorization: `Bearer ${token}`
           }
         }
       );
@@ -577,7 +582,10 @@ export const useCourseApi = () => {
             `${BASE_URL}api/Course/tree-course-with-progress`,
             {
               params,
-              headers: { Authorization: `Bearer ${token}` }
+              headers: { 
+                Authorization: `Bearer ${token}`,
+                ...getTenantHeaders()
+              }
             }
           );
           return apiResponse.data;

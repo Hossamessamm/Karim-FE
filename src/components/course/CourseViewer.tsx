@@ -14,6 +14,7 @@ import axios from 'axios';
 import { BASE_URL } from '../../apiConfig';
 import VideoWatermark from '../common/VideoWatermark';
 import { getUserPhoneNumber } from '../../utils/userWatermark';
+import UnitAccessTimer from '../common/UnitAccessTimer';
 
 // Add these color variables at the top of the file
 const colors = {
@@ -971,7 +972,7 @@ const CourseViewer: React.FC = () => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Course Content</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">محاضرات الباقة</h2>
                   <p className="text-sm text-slate-500">{`${courseDetails?.units.length} Units • ${totalLessons} Lessons`}</p>
                 </div>
               </div>
@@ -1125,6 +1126,16 @@ const CourseViewer: React.FC = () => {
               </div>
             ) : selectedLesson && lessonDetails ? (
               <div className="space-y-6">
+                {/* Unit Access Timer */}
+                {courseDetails && activeUnit !== null && (
+                  <UnitAccessTimer 
+                    unitIndex={activeUnit}
+                    enrollmentDate={courseDetails.enrollmentDate}
+                    totalUnits={courseDetails.units.length}
+                    className="mb-6"
+                  />
+                )}
+                
                 {selectedLesson.type === 'Video' && isVideoLessonResponse(lessonDetails) && (
                   <>
                     <div 

@@ -142,13 +142,12 @@ const MyLectures: React.FC = () => {
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg">
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <span className="text-gray-800">محاضراتي</span>
-              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent">المسجلة</span>
+              <span className="text-gray-800">محاضرات السنتر</span>
+              <span className="bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent"></span>
             </span>
           </h1>
           
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            جميع الوحدات التعليمية التي قمت بالتسجيل بها من خلال أكواد المحاضرات
           </p>
         </div>
 

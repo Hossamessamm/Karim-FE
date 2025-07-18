@@ -55,7 +55,7 @@ const CodeEntryForm: React.FC = () => {
         {/* Title */}
         <div className="text-center mb-6">
           <h2 className="text-3xl sm:text-4xl font-extrabold text-purple-700 mb-2 drop-shadow">
-            الأكواد
+            أكواد محاضرات السنتر
           </h2>
         </div>
 

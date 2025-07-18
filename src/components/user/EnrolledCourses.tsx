@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { BASE_URL } from '../../apiConfig';
+import { getTenantHeaders } from '../../config/tenant';
 
 interface Course {
   id: string;
@@ -96,7 +97,8 @@ const EnrolledCourses: React.FC = () => {
           {
             headers: {
               'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              ...getTenantHeaders()
             },
           }
         );
