@@ -725,6 +725,7 @@ export const useCourseApi = () => {
           headers: {
             'accept': '*/*',
             'Authorization': `Bearer ${token}`,
+            ...getTenantHeaders()
           }
         }
       );
