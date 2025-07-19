@@ -107,7 +107,7 @@ const Footer: React.FC = () => {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 max-w-md mx-auto lg:mx-0">
               {[
-                { icon: Users, number: "500+", label: "طالب متفوق" },
+                { icon: Users, number: "5000+", label: "طالب متفوق" },
                 { icon: BookOpen, number: "98%", label: "نسبة النجاح" },
                 { icon: Star, number: "4.9", label: "تقييم الطلاب" }
               ].map((stat, index) => (
