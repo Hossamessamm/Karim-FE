@@ -208,13 +208,18 @@ export const authService = {
   },
 
   login: async (email: string, password: string) => {
+    console.log('Starting login process...');
     try {
       // Update the endpoint path to match the API structure with /api/ prefix
+      console.log('Making API call to /api/Auth/login...');
       const response = await api.post('/api/Auth/login', { email, password });
       console.log('Login response:', response);
       return { success: true, data: response.data };
     } catch (error: any) {
       console.error('Login error details:', error);
+      console.error('Error response status:', error.response?.status);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error response data type:', typeof error.response?.data);
       
       // Check for network errors
       if (error.code === 'ERR_NETWORK') {
@@ -238,6 +243,7 @@ export const authService = {
       
       // Check if the error is in response.data.message
       const errorMessage = error.response?.data?.message || 'Login failed';
+      console.log('Error message variable:', errorMessage);
       
       // Check if the regular error message contains the max devices text
       if (errorMessage.includes(maxDevicesErrorMessage)) {
@@ -246,6 +252,36 @@ export const authService = {
           error: maxDevicesErrorMessage,
           isMaxDevicesError: true
         };
+      }
+      
+      // Handle invalid credentials error (400 status)
+      if (error.response?.status === 400) {
+        console.log('400 error response data:', error.response?.data);
+        console.log('400 error response data type:', typeof error.response?.data);
+        
+        // If the response data is a string, convert "Invalid credentials" to Arabic
+        if (typeof error.response?.data === 'string') {
+          console.log('Using response data string directly:', error.response.data);
+          if (error.response.data === 'Invalid credentials') {
+            return { success: false, error: "البريد الإلكتروني أو الباسورد غير صحيح" };
+          }
+          return { success: false, error: error.response.data };
+        }
+        
+        // Check if the response data.message contains "Invalid credentials"
+        if (error.response?.data?.message === 'Invalid credentials') {
+          console.log('Found "Invalid credentials" in response data.message');
+          return { success: false, error: "Invalid credentials" };
+        }
+        
+        // Check for the Arabic message as fallback
+        const arabicInvalidCredentials = "البريد الإلكتروني أو الباسورد غير صحيح";
+        if (errorMessage === arabicInvalidCredentials) {
+          console.log('Found Arabic invalid credentials message, converting to English');
+          return { success: false, error: "Invalid credentials" };
+        }
+        
+        console.log('No specific invalid credentials pattern found, using original error message');
       }
       
       return { success: false, error: errorMessage };
