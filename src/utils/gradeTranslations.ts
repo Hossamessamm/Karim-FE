@@ -40,13 +40,13 @@ export const getRecommendedCoursesText = (grade: string): string => {
 };
 
 export const courseSectionTranslations = {
-  availableCourses: 'الدورات المتاحة',
+  availableCourses: 'الباقات المتاحة',
   currentGrade: 'الصف الحالي',
   previous: 'السابق',
   next: 'التالي',
-  noCoursesFound: 'لم يتم العثور على دورات',
-  errorLoading: 'حدث خطأ أثناء تحميل الدورات',
-  featuredCourses: 'الدورات المميزة',
-  discoverCourses: 'اكتشف مجموعتنا المختارة بعناية من دورات اللغة الإنجليزية',
+  noCoursesFound: 'لم يتم العثور على باقات',
+  errorLoading: 'حدث خطأ أثناء تحميل الباقة',
+  featuredCourses: 'الباقات المميزة',
+  discoverCourses: 'اكتشف مجموعتنا المختارة بعناية من الدورات  ',
   recommendedForGrade: getRecommendedCoursesText
 }; 

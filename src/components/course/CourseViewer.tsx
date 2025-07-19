@@ -451,6 +451,20 @@ const CourseViewer: React.FC = () => {
     }
   }
 
+  // Check if the first lesson is a quiz that hasn't been submitted
+  if (allLessons.length > 0) {
+    const { unitIndex, lessonIndex, lesson } = allLessons[0];
+    if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
+      // Load the quiz but show a message that it needs to be completed first
+      setActiveUnit(unitIndex);
+      setActiveLesson(lessonIndex);
+      setSelectedLesson(lesson);
+      await loadLessonDetails(lesson.id);
+      navigate(`/course-player/${courseId}?unit=${unitIndex}&lesson=${lessonIndex}`, { replace: true });
+      return;
+    }
+  }
+
   // Final fallback: if no incomplete lessons found, load the first accessible lesson
   if (allLessons.length > 0) {
     const { unitIndex, lessonIndex, lesson } = allLessons[0];
@@ -840,44 +854,32 @@ const CourseViewer: React.FC = () => {
   const hasNextLesson = activeLesson < currentUnit.lessons.length - 1 || activeUnit < courseDetails.units.length - 1;
 
   const markLessonAsCompleted = async (lessonId: number) => {
-    try {
-      const token = localStorage.getItem('auth_token');
-      const response = await axios.post(
-        `${BASE_URL}api/Lesson/complete`,
-        lessonId,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            ...getTenantHeaders()
-          },
-        }
-      );
-      const data = response.data as { success: boolean; message: string };
-      if (data.success) {
-        if (selectedLesson && selectedLesson.id === lessonId && selectedLesson.type === 'Video') {
-          setSelectedLesson({ ...selectedLesson, isCompleted: true });
-        }
-        // Refetch course details to update curriculum (force refresh)
-        if (courseId) {
-          const updated = await fetchCourseDetails(courseId, true);
-          if (updated?.success) setCourseDetails(updated.data);
-        }
-        setShowBravo(true);
-        setTimeout(async () => {
-          setShowBravo(false);
-          if (hasNextLesson) {
-            await goToNextLesson();
-          } else {
-            window.location.reload();
-          }
-        }, 2000);
-      } else {
-        alert(data.message || 'حدث خطأ أثناء حفظ التقدم');
-      }
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'حدث خطأ أثناء حفظ التقدم');
+    // Update local state without API call
+    if (selectedLesson && selectedLesson.id === lessonId && selectedLesson.type === 'Video') {
+      setSelectedLesson({ ...selectedLesson, isCompleted: true });
     }
+    
+    // Add to completed lessons locally
+    setCompletedLessons(prev => {
+      const lessonIdStr = lessonId.toString();
+      if (!prev.includes(lessonIdStr)) {
+        const newCompleted = [...prev, lessonIdStr];
+        localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(newCompleted));
+        return newCompleted;
+      }
+      return prev;
+    });
+    
+    // Show success message
+    setShowBravo(true);
+    setTimeout(async () => {
+      setShowBravo(false);
+      if (hasNextLesson) {
+        await goToNextLesson();
+      } else {
+        window.location.reload();
+      }
+    }, 2000);
   };
 
   return (
@@ -1153,8 +1155,8 @@ const CourseViewer: React.FC = () => {
                           <VideoWatermark 
                             phoneNumber={userPhoneNumber} 
                             isVisible={true}
-                            opacity={0.7}
-                            speed={2}
+                            opacity={0.3}
+                            speed={5}
                           />
                         )}
                         

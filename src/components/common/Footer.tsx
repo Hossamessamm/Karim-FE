@@ -129,7 +129,7 @@ const Footer: React.FC = () => {
             <div className="space-y-4">
               {[
                 { to: "/", label: "الرئيسية", icon: Home },
-                { to: "/about", label: "عن المنصة", icon: Users },
+                // { to: "/about", label: "عن المنصة", icon: Users },
                 { to: "/courses", label: "الدورات", icon: BookOpen },
               ].map((link, index) => (
                 <Link

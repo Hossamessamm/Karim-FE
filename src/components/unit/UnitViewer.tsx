@@ -326,21 +326,31 @@ const UnitViewer: React.FC = () => {
         const lessonIndex = parseInt(lessonParam);
         
         if (!isNaN(lessonIndex) && lessonIndex >= 0 && lessonIndex < unitWithProgress.lessons.length) {
-          const lesson = unitWithProgress.lessons[lessonIndex];
-          setActiveLesson(lessonIndex);
-          setSelectedLesson(lesson);
-          loadLessonContent(lesson.id);
+          // Check if the lesson is locked
+          let lock = false;
+          if (lessonIndex > 0) {
+            const prevLesson = unitWithProgress.lessons[lessonIndex - 1];
+            if (prevLesson.type === LessonType.Quiz && !prevLesson.isQuizSubmitted) {
+              lock = true;
+            }
+          }
+          
+          if (!lock) {
+            const lesson = unitWithProgress.lessons[lessonIndex];
+            setActiveLesson(lessonIndex);
+            setSelectedLesson(lesson);
+            loadLessonContent(lesson.id);
+          } else {
+            // Find the first unlocked lesson
+            findAndLoadFirstUnlockedLesson();
+          }
         } else {
-          // Load first lesson
-          setActiveLesson(0);
-          setSelectedLesson(unitWithProgress.lessons[0]);
-          loadLessonContent(unitWithProgress.lessons[0].id);
+          // Find the first unlocked lesson
+          findAndLoadFirstUnlockedLesson();
         }
       } else {
-        // Load first lesson
-        setActiveLesson(0);
-        setSelectedLesson(unitWithProgress.lessons[0]);
-        loadLessonContent(unitWithProgress.lessons[0].id);
+        // Find the first unlocked lesson
+        findAndLoadFirstUnlockedLesson();
       }
     }
   }, [unitWithProgress, searchParams]);
@@ -357,6 +367,40 @@ const UnitViewer: React.FC = () => {
       setLoadingError('حدث خطأ أثناء تحميل محتوى الدرس');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Helper function to find and load the first unlocked lesson
+  const findAndLoadFirstUnlockedLesson = async () => {
+    if (!unitWithProgress?.lessons) return;
+
+    // Find the first unlocked lesson
+    let lock = false;
+    for (let lessonIndex = 0; lessonIndex < unitWithProgress.lessons.length; lessonIndex++) {
+      const lesson = unitWithProgress.lessons[lessonIndex];
+      
+      // Check if this lesson is locked
+      if (lessonIndex > 0) {
+        const prevLesson = unitWithProgress.lessons[lessonIndex - 1];
+        if (prevLesson.type === LessonType.Quiz && !prevLesson.isQuizSubmitted) {
+          lock = true;
+        }
+      }
+      
+      // If lesson is not locked, select it
+      if (!lock) {
+        setActiveLesson(lessonIndex);
+        setSelectedLesson(lesson);
+        await loadLessonContent(lesson.id);
+        return;
+      }
+    }
+    
+    // If all lessons are locked, select the first one anyway
+    if (unitWithProgress.lessons.length > 0) {
+      setActiveLesson(0);
+      setSelectedLesson(unitWithProgress.lessons[0]);
+      await loadLessonContent(unitWithProgress.lessons[0].id);
     }
   };
 
@@ -517,13 +561,13 @@ const UnitViewer: React.FC = () => {
   };
 
   const goToNextLesson = async () => {
-    if (activeLesson !== null && unitLessons && activeLesson < unitLessons.length - 1) {
+    if (activeLesson !== null && unitWithProgress?.lessons && activeLesson < unitWithProgress.lessons.length - 1) {
       const nextLessonIndex = activeLesson + 1;
       await handleLessonClick(nextLessonIndex);
     }
   };
 
-  const hasNextLesson = activeLesson !== null && unitLessons && unitLessons.length > 0 && activeLesson < unitLessons.length - 1;
+  const hasNextLesson = activeLesson !== null && unitWithProgress?.lessons && unitWithProgress.lessons.length > 0 && activeLesson < unitWithProgress.lessons.length - 1;
 
   if (isLoading || loading) {
     return (
@@ -658,61 +702,87 @@ const UnitViewer: React.FC = () => {
             {/* Unit Lessons List */}
             <div className="overflow-y-auto flex-1 py-4">
               <div className="space-y-1">
-                {unitWithProgress?.lessons && unitWithProgress.lessons.map((lesson, lessonIndex) => (
-                  <button
-                    key={lesson.id}
-                    className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
-                      ${activeLesson === lessonIndex 
-                        ? 'bg-emerald-50 text-emerald-700' 
-                        : 'hover:bg-slate-50 text-slate-700'}`}
-                    onClick={() => handleLessonClick(lessonIndex)}
-                  >
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center
-                      ${activeLesson === lessonIndex 
-                        ? 'bg-emerald-100' 
-                        : 'bg-slate-100'}`}
-                    >
-                      {lesson.type === LessonType.Video ? (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        </svg>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 text-left">
-                      <h4 className="font-medium text-current line-clamp-1">{lesson.lessonName}</h4>
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className={activeLesson === lessonIndex 
-                          ? 'text-emerald-600' 
-                          : 'text-slate-500'}>
-                          {lesson.type === LessonType.Video ? 'فيديو' : 'اختبار'}
-                        </span>
-                        {/* Show lesson progress */}
-                        {lesson.type === LessonType.Video && lesson.isCompleted && (
-                          <span className="inline-flex items-center gap-1 text-green-600 text-xs">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                {unitWithProgress?.lessons && (() => {
+                  let lock = false;
+                  return unitWithProgress.lessons.map((lesson, lessonIndex) => {
+                    // If previous lesson is a quiz and not submitted, lock this and all next lessons
+                    if (lessonIndex > 0) {
+                      const prevLesson = unitWithProgress.lessons[lessonIndex - 1];
+                      if (prevLesson.type === LessonType.Quiz && !prevLesson.isQuizSubmitted) {
+                        lock = true;
+                      }
+                    }
+                    const isLessonLocked = lock && !(activeLesson === lessonIndex);
+                    
+                    return (
+                      <button
+                        key={lesson.id}
+                        className={`w-full px-6 py-3 flex items-center gap-3 transition-colors
+                          ${activeLesson === lessonIndex 
+                            ? 'bg-emerald-50 text-emerald-700' 
+                            : isLessonLocked ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50 text-slate-700'}`}
+                        onClick={() => !isLessonLocked && handleLessonClick(lessonIndex)}
+                        disabled={isLessonLocked}
+                      >
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center
+                          ${activeLesson === lessonIndex 
+                            ? 'bg-emerald-100' 
+                            : 'bg-slate-100'}`}
+                        >
+                          {isLessonLocked ? (
+                            <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
-                            مكتمل
-                          </span>
-                        )}
-                        {lesson.type === LessonType.Quiz && lesson.isQuizSubmitted && (
-                          <span className="inline-flex items-center gap-1 text-green-600 text-xs">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          ) : lesson.type === LessonType.Video ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                             </svg>
-                            مُرسل
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
+                          ) : (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1 text-left">
+                          <h4 className={`font-medium line-clamp-1 ${isLessonLocked ? 'text-gray-500' : 'text-current'}`}>
+                            {lesson.lessonName}
+                          </h4>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className={`${
+                              activeLesson === lessonIndex 
+                                ? 'text-emerald-600' 
+                                : isLessonLocked ? 'text-gray-400' : 'text-slate-500'
+                            }`}>
+                              {lesson.type === LessonType.Video ? 'فيديو' : 'اختبار'}
+                            </span>
+                            {isLessonLocked && (
+                              <span className="text-xs text-gray-400">مقفل</span>
+                            )}
+                            {/* Show lesson progress */}
+                            {!isLessonLocked && lesson.type === LessonType.Video && lesson.isCompleted && (
+                              <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                مكتمل
+                              </span>
+                            )}
+                            {!isLessonLocked && lesson.type === LessonType.Quiz && lesson.isQuizSubmitted && (
+                              <span className="inline-flex items-center gap-1 text-green-600 text-xs">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                                مُرسل
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  });
+                })()}
               </div>
             </div>
           </div>

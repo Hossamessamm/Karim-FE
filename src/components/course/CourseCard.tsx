@@ -16,16 +16,20 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
     }
     
     if (course.imagePath) {
-      // If imagePath is a relative path, prepend the API base URL
-      if (course.imagePath.startsWith('/') || course.imagePath.startsWith('images/')) {
-        return `${BASE_URL}${course.imagePath}`;
-      }
       // If it's already a full URL, use it as is
       if (course.imagePath.startsWith('http')) {
         return course.imagePath;
       }
-      // Otherwise, assume it's relative to the API base
-      return `${BASE_URL}${course.imagePath}`;
+      
+      // Handle relative paths - remove leading slash to avoid double slashes
+      let imagePath = course.imagePath;
+      if (imagePath.startsWith('/')) {
+        imagePath = imagePath.substring(1); // Remove leading slash
+      }
+      
+      // Ensure BASE_URL ends with a slash
+      const baseUrl = BASE_URL.endsWith('/') ? BASE_URL : BASE_URL + '/';
+      return `${baseUrl}${imagePath}`;
     }
     // Fallback to a default image if no image path is provided
     return '/default-course.jpg';
@@ -58,10 +62,14 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
           
           {/* Price badge - modern design */}
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20">
+          <div className={`absolute top-4 left-4 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm border border-white/20 ${
+            course.price === 0 
+              ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
+              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+          }`}>
             <div className="flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
-              {formattedPrice} جنيه
+              {course.price === 0 ? 'مجاناً' : `${formattedPrice} جنيه`}
             </div>
           </div>
           
@@ -102,10 +110,16 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
             
             {/* Price display */}
             <div className="text-right">
-              <div className="text-2xl font-bold text-transparent bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text">
-                {formattedPrice}
+              <div className={`text-2xl font-bold ${
+                course.price === 0 
+                  ? 'text-transparent bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text' 
+                  : 'text-transparent bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text'
+              }`}>
+                {course.price === 0 ? 'مجاناً' : formattedPrice}
               </div>
-              <div className="text-xs text-gray-500 font-medium">جنيه مصري</div>
+              <div className="text-xs text-gray-500 font-medium">
+                {course.price === 0 ? 'دورة مجانية' : 'جنيه مصري'}
+              </div>
             </div>
           </div>
         </div>

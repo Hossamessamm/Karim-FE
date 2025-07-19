@@ -112,10 +112,10 @@ const MyLectures: React.FC = () => {
   // Error state component
   const ErrorState = () => (
     <div className="text-center py-16">
-      <div className="inline-block p-6 bg-red-100 rounded-full mb-6">
+      {/* <div className="inline-block p-6 bg-red-100 rounded-full mb-6">
         <AlertCircle className="w-16 h-16 text-red-600" />
-      </div>
-      <h3 className="text-2xl font-bold text-gray-900 mb-4">حدث خطأ</h3>
+      </div> */}
+      <h3 className="text-2xl font-bold text-gray-900 mb-4">أنت ليس لديك محاضرات</h3>
       <p className="text-gray-600 mb-6">{error}</p>
       <button
         onClick={handleRefresh}

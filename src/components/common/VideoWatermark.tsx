@@ -21,39 +21,56 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
     let animationFrame: number;
     const startTime = Date.now();
     
-    // Center position with small random offset
-    const centerX = 50 + (Math.random() * 6 - 3); // 47% to 53%
-    const centerY = 50 + (Math.random() * 6 - 3); // 47% to 53%
+    // Full screen movement with random starting position
+    const startX = 10 + (Math.random() * 80); // 10% to 90%
+    const startY = 10 + (Math.random() * 80); // 10% to 90%
 
     const animate = () => {
       const elapsed = (Date.now() - startTime) / 1000; // seconds
-      const progress = (elapsed / speed) % 1; // 0 to 1 cycle
-
-      // Create multiple overlapping sine waves for more natural movement
-      const angle1 = progress * 2 * Math.PI;
-      const angle2 = progress * 1.7 * Math.PI; // Different frequency
-      const angle3 = progress * 0.8 * Math.PI; // Even slower frequency
       
-      // Use center position as base
-      const baseX = centerX;
-      const baseY = centerY;
+      // Fixed speed movement - pixels per second
+      const pixelsPerSecond = 150; // Fast fixed speed
+      const totalDistance = elapsed * pixelsPerSecond;
       
-      // Smaller movement components to keep watermark near center
-      const moveX1 = Math.sin(angle1) * 8; // Primary horizontal movement (reduced range)
-      const moveX2 = Math.cos(angle2) * 4; // Secondary horizontal movement (reduced range)
-      const moveY1 = Math.cos(angle1) * 6; // Primary vertical movement (reduced range)
-      const moveY2 = Math.sin(angle3) * 3; // Secondary vertical movement (reduced range)
+      // Screen dimensions for boundary calculations
+      const screenWidth = 80; // 5% to 85% = 80% of screen
+      const screenHeight = 80; // 5% to 85% = 80% of screen
       
-      // Smaller drift
-      const driftX = Math.sin(angle3) * 3;
-      const driftY = Math.cos(angle3) * 3;
+      // Calculate position based on fixed speed
+      const cycleTime = (screenWidth + screenHeight) * 2 / pixelsPerSecond; // Time for one complete cycle
+      const cycleProgress = (elapsed % cycleTime) / cycleTime;
       
-      const x = baseX + moveX1 + moveX2 + driftX;
-      const y = baseY + moveY1 + moveY2 + driftY;
+      let x, y;
       
-      // Tighter bounds to keep near center
-      const boundedX = Math.max(40, Math.min(60, x));
-      const boundedY = Math.max(40, Math.min(60, y));
+      // Create a rectangular path around the screen
+      if (cycleProgress < 0.25) {
+        // Top edge: left to right
+        const edgeProgress = cycleProgress * 4;
+        x = 5 + (edgeProgress * screenWidth);
+        y = 5;
+      } else if (cycleProgress < 0.5) {
+        // Right edge: top to bottom
+        const edgeProgress = (cycleProgress - 0.25) * 4;
+        x = 85;
+        y = 5 + (edgeProgress * screenHeight);
+      } else if (cycleProgress < 0.75) {
+        // Bottom edge: right to left
+        const edgeProgress = (cycleProgress - 0.5) * 4;
+        x = 85 - (edgeProgress * screenWidth);
+        y = 85;
+      } else {
+        // Left edge: bottom to top
+        const edgeProgress = (cycleProgress - 0.75) * 4;
+        x = 5;
+        y = 85 - (edgeProgress * screenHeight);
+      }
+      
+      // Add some variation to make it less predictable
+      const variationX = Math.sin(elapsed * 2) * 3;
+      const variationY = Math.cos(elapsed * 1.5) * 3;
+      
+      const boundedX = Math.max(5, Math.min(85, x + variationX));
+      const boundedY = Math.max(5, Math.min(85, y + variationY));
       
       setPosition({ x: boundedX, y: boundedY });
       
