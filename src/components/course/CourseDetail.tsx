@@ -263,7 +263,7 @@ const CourseDetail: React.FC = () => {
                 onClick={handleGoToMyCourses}
                 className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-medium hover:from-blue-700 hover:to-blue-800 transform hover:-translate-y-1 transition-all duration-300 shadow-lg shadow-blue-500/25"
               >
-                الانتقال لدوراتي
+                الانتقال الى باقاتي
               </button>
             </div>
           </div>

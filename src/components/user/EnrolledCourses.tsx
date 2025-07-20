@@ -166,7 +166,7 @@ const EnrolledCourses: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">دوراتي</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">باقاتي</h1>
           <p className="text-gray-600">
             {totalCount > 0 ? `لديك ${totalCount} ${totalCount === 1 ? 'دورة' : 'دورات'} مسجلة` : 'اكتشف دوراتك المسجلة وابدأ رحلة التعلم'}
           </p>
