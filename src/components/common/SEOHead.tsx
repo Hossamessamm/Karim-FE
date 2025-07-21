@@ -114,7 +114,7 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         "worksFor": {
           "@type": "Organization",
           "name": "منصة م. محمود الشيخ التعليمية",
-          "url": "https://ibrahim-magdy.com/"
+          "url": "https://mahmoud-elsheikh.com/"
         },
         "knowsAbout": [
           "التاريخ",
