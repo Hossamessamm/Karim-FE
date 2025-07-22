@@ -188,7 +188,7 @@ const Login: React.FC = () => {
               <div className="space-y-5">
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    البريد الإلكتروني
+                    البريد الإلكتروني أو رقم الجوال
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -197,13 +197,13 @@ const Login: React.FC = () => {
                     <input
                       id="email"
                       name="email"
-                      type="email"
-                      autoComplete="email"
+                      type="text"
+                      autoComplete="username"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="block w-full pr-10 pl-4 py-3 border border-gray-300 rounded-xl bg-white/50 backdrop-blur-sm shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 text-sm"
-                      placeholder="أدخل بريدك الإلكتروني"
+                      placeholder="أدخل بريدك الإلكتروني أو رقم الجوال"
                     />
                   </div>
                 </div>

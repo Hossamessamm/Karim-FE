@@ -212,7 +212,7 @@ export const authService = {
     try {
       // Update the endpoint path to match the API structure with /api/ prefix
       console.log('Making API call to /api/Auth/login...');
-      const response = await api.post('/api/Auth/login', { email, password });
+      const response = await api.post('/api/Auth/login', { EmailorMobile: email, password });
       console.log('Login response:', response);
       return { success: true, data: response.data };
     } catch (error: any) {
