@@ -36,15 +36,28 @@ const Login: React.FC = () => {
     }
   }, [location.state]);
 
+  const validateEmailOrMobile = (value: string) => {
+    // Simple email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // Egyptian mobile number regex
+    const mobileRegex = /^01[0-9]{9}$/;
+    return emailRegex.test(value) || mobileRegex.test(value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccessMessage('');
     setIsMaxDevicesError(false);
-    
+
+    if (!validateEmailOrMobile(email)) {
+      setError('يرجى إدخال بريد إلكتروني صحيح أو رقم هاتف مصري صحيح');
+      return;
+    }
+
     try {
       const result = await login(email, password);
-      
+
       if (result.success) {
         // Always navigate to home page after successful login
         navigate('/', { replace: true });
@@ -59,7 +72,7 @@ const Login: React.FC = () => {
     } catch (error: any) {
       const maxDevicesErrorMessage = "You can't log in from more than two devices.";
       const errorMessage = error.message || error.toString();
-      
+
       if (errorMessage.includes(maxDevicesErrorMessage)) {
         setIsMaxDevicesError(true);
         setError(maxDevicesErrorMessage);
@@ -115,7 +128,7 @@ const Login: React.FC = () => {
           <p className="text-gray-600 text-lg">
             سجل دخولك لمواصلة رحلة التعلم
           </p>
-          
+
           {/* Feature Icons */}
           <div className="flex justify-center gap-6 mt-8">
             <div className="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
@@ -137,11 +150,11 @@ const Login: React.FC = () => {
         <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-8 shadow-xl border border-white/60 relative overflow-hidden">
           {/* Subtle gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-transparent to-purple-50/50 rounded-2xl"></div>
-          
+
           <div className="relative z-10">
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && !isMaxDevicesError && <ApiErrorAlert message={error} onRetry={handleRetry} />}
-              
+
               {isMaxDevicesError && (
                 <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-4 shadow-sm">
                   <div className="flex">
@@ -178,7 +191,7 @@ const Login: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {successMessage && (
                 <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 shadow-sm">
                   <p className="text-green-800 text-sm font-medium">{successMessage}</p>
@@ -188,7 +201,7 @@ const Login: React.FC = () => {
               <div className="space-y-5">
                 <div>
                   <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                    البريد الإلكتروني أو رقم الجوال
+                    البريد الإلكتروني أو رقم الهاتف
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
