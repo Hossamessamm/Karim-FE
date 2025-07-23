@@ -133,7 +133,7 @@ const Login: React.FC = () => {
           <div className="flex justify-center gap-6 mt-8">
             <div className="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
               <BookOpen className="w-6 h-6 text-blue-600 mb-2" />
-              <span className="text-xs text-gray-600 font-medium">دورات تعليمية</span>
+              <span className="text-xs text-gray-600 font-medium">باقات تعليمية</span>
             </div>
             <div className="flex flex-col items-center p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/80 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
               <Star className="w-6 h-6 text-yellow-500 mb-2" />

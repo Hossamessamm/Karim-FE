@@ -107,7 +107,7 @@ const Navbar: React.FC = () => {
                       }`}
                     >
                       <GraduationCap className="w-4 h-4 inline-block ml-1" />
-                      دوراتي
+                      باقاتي
                     </Link>
                   </div>
                 )}

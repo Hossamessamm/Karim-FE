@@ -274,7 +274,7 @@ const EnrollmentPopup: React.FC<EnrollmentPopupProps> = ({ isOpen, onClose, cour
                   onClick={() => navigate('/enrolled-courses')}
                   className="flex-1 py-3 px-4 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-200"
                 >
-                  عرض دوراتي
+                  عرض باقاتي
                 </button>
               </div>
             </div>

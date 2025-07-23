@@ -101,7 +101,7 @@ const Footer: React.FC = () => {
             </div>
             <p className="text-gray-300 text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
               نقدم تعليمًا عالي الجودة لطلاب جميع المراحل الدراسية. 
-              تعلم بالسرعة التي تناسبك مع دوراتنا التفاعلية التي يقودها الخبراء.
+              تعلم بالسرعة التي تناسبك مع باقاتنا التفاعلية التي يقودها الخبراء.
             </p>
             
             {/* Stats */}
@@ -130,7 +130,7 @@ const Footer: React.FC = () => {
               {[
                 { to: "/", label: "الرئيسية", icon: Home },
                 // { to: "/about", label: "عن المنصة", icon: Users },
-                { to: "/courses", label: "الدورات", icon: BookOpen },
+                { to: "/courses", label: "الباقات", icon: BookOpen },
               ].map((link, index) => (
                 <Link
                   key={index}

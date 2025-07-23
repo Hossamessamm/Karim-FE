@@ -123,14 +123,14 @@ const EnrolledCourses: React.FC = () => {
             setTotalPages(data.data.totalPages);
           setTotalCount(data.data.totalCount);
         } else {
-          setError(data.message || 'حدث خطأ أثناء جلب الدورات');
+          setError(data.message || 'حدث خطأ أثناء جلب الباقات');
           setCourses([]);
           setTotalPages(1);
           setTotalCount(0);
         }
       } catch (err) {
         console.error('Error fetching courses:', err);
-        setError('حدث خطأ أثناء جلب الدورات');
+        setError('حدث خطأ أثناء جلب الباقات');
         setCourses([]);
         setTotalPages(1);
         setTotalCount(0);
@@ -168,7 +168,7 @@ const EnrolledCourses: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">باقاتي</h1>
           <p className="text-gray-600">
-            {totalCount > 0 ? `لديك ${totalCount} ${totalCount === 1 ? 'دورة' : 'دورات'} مسجلة` : 'اكتشف دوراتك المسجلة وابدأ رحلة التعلم'}
+            {totalCount > 0 ? `لديك ${totalCount} ${totalCount === 1 ? 'باقة' : 'باقات'} مسجلة` : 'اكتشف باقاتك المسجلة وابدأ رحلة التعلم'}
           </p>
         </div>
 
@@ -185,7 +185,7 @@ const EnrolledCourses: React.FC = () => {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد دورات مسجلة</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">لا توجد باقات مسجلة</h3>
             <p className="mt-1 text-sm text-gray-500">ابدأ بالتسجيل في دورة جديدة للبدء في التعلم</p>
           </div>
         ) : (

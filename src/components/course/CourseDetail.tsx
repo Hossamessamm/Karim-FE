@@ -225,7 +225,7 @@ const CourseDetail: React.FC = () => {
             onClick={() => navigate('/')}
             className="bg-primary text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition-colors duration-200"
           >
-            تصفح جميع الدورات
+            تصفح جميع الباقات
           </button>
         </div>
       </div>

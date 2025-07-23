@@ -36,7 +36,7 @@ export const getTermInArabic = (term: string): string => {
 
 // Function to get recommended courses text
 export const getRecommendedCoursesText = (grade: string): string => {
-  return `الدورات المقترحة للصف ${getGradeInArabic(grade)}`;
+  return `الباقات المقترحة للصف ${getGradeInArabic(grade)}`;
 };
 
 export const courseSectionTranslations = {
@@ -47,6 +47,6 @@ export const courseSectionTranslations = {
   noCoursesFound: 'لم يتم العثور على باقات',
   errorLoading: 'حدث خطأ أثناء تحميل الباقة',
   featuredCourses: 'الباقات المميزة',
-  discoverCourses: 'اكتشف مجموعتنا المختارة بعناية من الدورات  ',
+  discoverCourses: 'اكتشف مجموعتنا المختارة بعناية من الباقات  ',
   recommendedForGrade: getRecommendedCoursesText
 }; 
