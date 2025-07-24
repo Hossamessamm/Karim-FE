@@ -69,7 +69,6 @@ const SEOHead: React.FC<SEOHeadProps> = ({
       <meta property="twitter:description" content={description} />
       <meta property="twitter:image" content={fullImageUrl} />
       <meta property="twitter:creator" content="@mahmoud_elsheikh" />
-      <meta property="twitter:site" content="@ibrahim_magdy_platform" />
 
       {/* Additional SEO Meta Tags */}
       <meta name="language" content="Arabic" />
