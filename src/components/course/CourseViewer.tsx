@@ -175,9 +175,13 @@ const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessib
   const now = new Date();
   const daysSinceEnrollment = Math.floor((now.getTime() - enrollment.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Each unit is accessible for 7 days
-  const unitStartDay = unitIndex * 7;
-  const unitEndDay = (unitIndex + 1) * 7;
+  // All units start from enrollment date (day 0)
+  // Each unit ends at different times:
+  // First unit (index 0): ends after 7 days
+  // Second unit (index 1): ends after 14 days
+  // Third unit (index 2): ends after 21 days, etc.
+  const unitStartDay = 0; // All units start from enrollment date
+  const unitEndDay = (unitIndex + 1) * 7; // Each unit ends after (unitIndex + 1) * 7 days
   
   // Check if we're in the access period for this unit
   if (daysSinceEnrollment >= unitStartDay && daysSinceEnrollment < unitEndDay) {
@@ -185,7 +189,7 @@ const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessib
     return { accessible: true, daysLeft };
   }
   
-  // Check if the unit period hasn't started yet
+  // Check if unit period hasn't started yet (shouldn't happen since all start at day 0)
   if (daysSinceEnrollment < unitStartDay) {
     const daysUntilStart = unitStartDay - daysSinceEnrollment;
     return { 
@@ -1155,8 +1159,8 @@ const CourseViewer: React.FC = () => {
                           <VideoWatermark 
                             phoneNumber={userPhoneNumber} 
                             isVisible={true}
-                            opacity={0.3}
-                            speed={5}
+                            opacity={0.2}
+                            speed={300}
                           />
                         )}
                         

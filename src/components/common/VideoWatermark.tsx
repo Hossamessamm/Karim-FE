@@ -10,8 +10,8 @@ interface VideoWatermarkProps {
 const VideoWatermark: React.FC<VideoWatermarkProps> = ({ 
   phoneNumber, 
   isVisible = true,
-  opacity = 0.7,
-  speed = 20 // seconds for one complete cycle
+  opacity = 0.3,
+  speed = 300 // Much slower - 300 seconds (5 minutes) for one complete cycle
 }) => {
   const [position, setPosition] = useState({ x: 20, y: 20 });
 
@@ -21,56 +21,50 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
     let animationFrame: number;
     const startTime = Date.now();
     
-    // Full screen movement with random starting position
-    const startX = 10 + (Math.random() * 80); // 10% to 90%
-    const startY = 10 + (Math.random() * 80); // 10% to 90%
+    // Increased border area - stay within 5-35% from edges
+    const borderArea = 5;
+    const startX = borderArea + (Math.random() * (35 - borderArea));
+    const startY = borderArea + (Math.random() * (35 - borderArea));
 
     const animate = () => {
-      const elapsed = (Date.now() - startTime) / 1000; // seconds
+      const elapsed = (Date.now() - startTime) / 1000;
       
-      // Fixed speed movement - pixels per second
-      const pixelsPerSecond = 150; // Fast fixed speed
+      // Extremely slow movement - pixels per second
+      const pixelsPerSecond = 6; // Very slow fixed speed
       const totalDistance = elapsed * pixelsPerSecond;
       
-      // Screen dimensions for boundary calculations
-      const screenWidth = 80; // 5% to 85% = 80% of screen
-      const screenHeight = 80; // 5% to 85% = 80% of screen
+      // Increased border area dimensions
+      const borderWidth = 30; // 5% to 35% = 30% of screen width
+      const borderHeight = 30; // 5% to 35% = 30% of screen height
       
-      // Calculate position based on fixed speed
-      const cycleTime = (screenWidth + screenHeight) * 2 / pixelsPerSecond; // Time for one complete cycle
+      const cycleTime = (borderWidth + borderHeight) * 2 / pixelsPerSecond;
       const cycleProgress = (elapsed % cycleTime) / cycleTime;
       
       let x, y;
       
-      // Create a rectangular path around the screen
       if (cycleProgress < 0.25) {
-        // Top edge: left to right
         const edgeProgress = cycleProgress * 4;
-        x = 5 + (edgeProgress * screenWidth);
+        x = 5 + (edgeProgress * borderWidth);
         y = 5;
       } else if (cycleProgress < 0.5) {
-        // Right edge: top to bottom
         const edgeProgress = (cycleProgress - 0.25) * 4;
-        x = 85;
-        y = 5 + (edgeProgress * screenHeight);
+        x = 35;
+        y = 5 + (edgeProgress * borderHeight);
       } else if (cycleProgress < 0.75) {
-        // Bottom edge: right to left
         const edgeProgress = (cycleProgress - 0.5) * 4;
-        x = 85 - (edgeProgress * screenWidth);
-        y = 85;
+        x = 35 - (edgeProgress * borderWidth);
+        y = 35;
       } else {
-        // Left edge: bottom to top
         const edgeProgress = (cycleProgress - 0.75) * 4;
         x = 5;
-        y = 85 - (edgeProgress * screenHeight);
+        y = 35 - (edgeProgress * borderHeight);
       }
       
-      // Add some variation to make it less predictable
-      const variationX = Math.sin(elapsed * 2) * 3;
-      const variationY = Math.cos(elapsed * 1.5) * 3;
+      const variationX = Math.sin(elapsed * 0.1) * 1; // Very slow variation
+      const variationY = Math.cos(elapsed * 0.08) * 1; // Very slow variation
       
-      const boundedX = Math.max(5, Math.min(85, x + variationX));
-      const boundedY = Math.max(5, Math.min(85, y + variationY));
+      const boundedX = Math.max(5, Math.min(35, x + variationX));
+      const boundedY = Math.max(5, Math.min(35, y + variationY));
       
       setPosition({ x: boundedX, y: boundedY });
       
@@ -97,17 +91,17 @@ const VideoWatermark: React.FC<VideoWatermarkProps> = ({
         left: `${position.x}%`,
         top: `${position.y}%`,
         transform: 'translate(-50%, -50%)',
-        transition: 'all 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+        transition: 'all 8s cubic-bezier(0.4, 0, 0.2, 1)' // Much slower transition
       }}
     >
       <div 
-        className="bg-black/50 backdrop-blur-md text-white text-sm px-3 py-1.5 rounded-md font-mono select-none border border-white/30 shadow-lg animate-pulse"
+        className="bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded font-mono select-none border border-white/20 shadow-sm"
         style={{ 
-          opacity: Math.min(1, opacity * 1.3), // Increase opacity but cap at 1
-          filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.4))',
-          animationDuration: '3s',
-          letterSpacing: '0.5px',
-          fontWeight: 500
+          opacity: Math.min(0.8, opacity),
+          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))',
+          animationDuration: '10s', // Much slower pulse
+          letterSpacing: '0.3px',
+          fontWeight: 400
         }}
       >
         {phoneNumber}
