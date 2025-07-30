@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, LogOut, Menu, X, Home, BookOpen, GraduationCap, PlayCircle } from 'lucide-react';
+import logoImage from '../../assets/images/logo/logo.jpg';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout, currentUser } = useAuth();
@@ -40,14 +41,10 @@ const Navbar: React.FC = () => {
           
           <div className="relative px-6 py-4">
             <div className="flex items-center justify-between">
-              {/* Logo and Brand */}
+              {/* Left side - Navigation */}
               <div className="flex items-center">
-                <Link to="/" className="flex items-center group">
-                  
-                </Link>
-                
                 {/* Desktop Navigation */}
-                <div className="hidden md:flex md:items-center md:mr-8 md:space-x-2">
+                <div className="hidden md:flex md:items-center md:space-x-2">
                   <Link to="/" className={navLinkClasses('/')}>
                     <Home className="w-4 h-4 inline-block ml-2" />
                     الرئيسية
@@ -83,52 +80,17 @@ const Navbar: React.FC = () => {
                     </>
                   )}
                 </div>
+              </div>
 
-                {/* Mobile Navigation - Show authenticated user links */}
-                {isAuthenticated && (
-                  <div className="md:hidden flex items-center mr-4 space-x-2">
-                    <Link
-                      to="/my-lectures"
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
-                        isCurrentPath('/my-lectures')
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
-                      }`}
-                    >
-                      <PlayCircle className="w-4 h-4 inline-block ml-1" />
-                      محاضرات السنتر
-                    </Link>
-                    <Link
-                      to="/enrolled-courses"
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-all duration-300 ${
-                        isCurrentPath('/enrolled-courses')
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                          : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
-                      }`}
-                    >
-                      <GraduationCap className="w-4 h-4 inline-block ml-1" />
-                      باقاتي
-                    </Link>
-                  </div>
-                )}
-
-                {/* Mobile Navigation - Show auth links for guest users */}
-                {!isAuthenticated && (
-                  <div className="md:hidden flex items-center mr-4 space-x-2">
-                    <Link
-                      to="/login"
-                      className="px-3 py-2 text-xs font-medium text-gray-700 hover:text-blue-600 rounded-lg transition-all duration-300 hover:bg-blue-50"
-                    >
-                      تسجيل الدخول
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-medium shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 text-xs"
-                    >
-                      إنشاء حساب
-                    </Link>
-                  </div>
-                )}
+              {/* Center - Logo */}
+              <div className="absolute left-1/2 transform -translate-x-1/2">
+                <Link to="/" className="flex items-center group">
+                  <img 
+                    src={logoImage} 
+                    alt="Elshekh Logo" 
+                    className="h-12 w-auto object-contain transition-transform duration-300 hover:scale-105"
+                  />
+                </Link>
               </div>
 
               {/* Auth Section */}
@@ -200,6 +162,16 @@ const Navbar: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden mt-2 bg-white/90 backdrop-blur-xl rounded-2xl border border-white/30 shadow-2xl shadow-black/5 overflow-hidden">
             <div className="p-4 space-y-2">
+              {/* Mobile Logo */}
+              <div className="flex justify-center mb-4">
+                <Link to="/" onClick={() => setIsMobileMenuOpen(false)}>
+                  <img 
+                    src={logoImage} 
+                    alt="Elshekh Logo" 
+                    className="h-10 w-auto object-contain"
+                  />
+                </Link>
+              </div>
               <Link
                 to="/"
                 className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
@@ -223,6 +195,36 @@ const Navbar: React.FC = () => {
                 <BookOpen className="w-5 h-5" />
                 الباقات
               </button>
+              
+              {/* Authenticated user navigation links */}
+              {isAuthenticated && (
+                <>
+                  <Link
+                    to="/my-lectures"
+                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isCurrentPath('/my-lectures')
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <PlayCircle className="w-5 h-5" />
+                    محاضرات السنتر
+                  </Link>
+                  <Link
+                    to="/enrolled-courses"
+                    className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
+                      isCurrentPath('/enrolled-courses')
+                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                    }`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <GraduationCap className="w-5 h-5" />
+                    باقاتي
+                  </Link>
+                </>
+              )}
               
               {/* Mobile auth section */}
               <div className="pt-4 border-t border-gray-200/50">

@@ -1,10 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContact } from '../../hooks/useContact';
 import { BookOpen, Home, Users, Star, Sparkles } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const { contactInfo } = useContact();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const scrollToCourses = () => {
+    const coursesSection = document.getElementById('courses-section');
+    if (coursesSection) {
+      coursesSection.scrollIntoView({ behavior: 'smooth' });
+    } else if (location.pathname !== '/') {
+      window.location.href = '/#courses-section';
+    }
+  };
 
   const renderSocialIcon = (
     type: 'whatsapp' | 'facebook' | 'youtube' | 'tiktok',
@@ -128,18 +139,29 @@ const Footer: React.FC = () => {
             </h3>
             <div className="space-y-4">
               {[
-                { to: "/", label: "الرئيسية", icon: Home },
+                { to: "/", label: "الرئيسية", icon: Home, isLink: true },
                 // { to: "/about", label: "عن المنصة", icon: Users },
-                { to: "/courses", label: "الباقات", icon: BookOpen },
+                { label: "الباقات", icon: BookOpen, isLink: false },
               ].map((link, index) => (
-                <Link
-                  key={index}
-                  to={link.to}
-                  className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1"
-                >
-                  <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
-                  <span className="group-hover:text-white">{link.label}</span>
-                </Link>
+                link.isLink ? (
+                  <Link
+                    key={index}
+                    to={link.to}
+                    className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1"
+                  >
+                    <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
+                    <span className="group-hover:text-white">{link.label}</span>
+                  </Link>
+                ) : (
+                  <button
+                    key={index}
+                    onClick={scrollToCourses}
+                    className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1 w-full text-right"
+                  >
+                    <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
+                    <span className="group-hover:text-white">{link.label}</span>
+                  </button>
+                )
               ))}
             </div>
           </div>

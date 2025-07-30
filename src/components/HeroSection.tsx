@@ -42,7 +42,7 @@ const HeroSection = () => {
 
   return (
     <div>
-      <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 overflow-hidden">
+      <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 overflow-hidden pt-24">
         {/* Animated Background Elements */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
