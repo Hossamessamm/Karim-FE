@@ -166,7 +166,12 @@ const clearCourseDetailsCache = (courseId: string) => {
 // Add these helper functions at the top of the component, after the existing helper functions
 
 // Helper function to check if a unit is accessible based on enrollment date
-const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessible: boolean; message?: string; daysLeft?: number } => {
+const isUnitAccessible = (unitIndex: number, enrollmentDate: string, isOpenToAll: boolean): { accessible: boolean; message?: string; daysLeft?: number } => {
+  // If course is open to all, all units are accessible
+  if (isOpenToAll) {
+    return { accessible: true };
+  }
+
   if (!enrollmentDate) {
     return { accessible: false, message: 'تاريخ التسجيل غير متوفر' };
   }
@@ -206,14 +211,76 @@ const isUnitAccessible = (unitIndex: number, enrollmentDate: string): { accessib
 };
 
 // Helper function to get unit access status for display
-const getUnitAccessStatus = (unitIndex: number, enrollmentDate: string) => {
-  const status = isUnitAccessible(unitIndex, enrollmentDate);
+// Function to check if a lesson should be locked due to unsubmitted quiz
+const isLessonLockedByQuiz = (unitIndex: number, lessonIndex: number, courseData: CourseDetails | null): boolean => {
+  if (!courseData) return false;
+  
+  const unit = courseData.units[unitIndex];
+  if (!unit) return false;
+  
+  // Check if any previous lesson in this unit is a quiz that hasn't been submitted
+  for (let i = 0; i < lessonIndex; i++) {
+    const lesson = unit.lessons[i];
+    if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
+      return true;
+    }
+  }
+  
+  // Check if any previous unit has an unsubmitted quiz
+  for (let prevUnitIndex = 0; prevUnitIndex < unitIndex; prevUnitIndex++) {
+    const prevUnit = courseData.units[prevUnitIndex];
+    for (const lesson of prevUnit.lessons) {
+      if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+};
+
+// Function to check if a unit should be locked due to unsubmitted quiz
+const isUnitLockedByQuiz = (unitIndex: number, courseData: CourseDetails | null): boolean => {
+  if (!courseData) return false;
+  
+  // Check if any previous unit has an unsubmitted quiz
+  for (let prevUnitIndex = 0; prevUnitIndex < unitIndex; prevUnitIndex++) {
+    const prevUnit = courseData.units[prevUnitIndex];
+    for (const lesson of prevUnit.lessons) {
+      if (lesson.type === 'Quiz' && !lesson.isQuizSubmitted) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+};
+
+const getUnitAccessStatus = (unitIndex: number, enrollmentDate: string, isOpenToAll: boolean, courseData: CourseDetails | null) => {
+  const status = isUnitAccessible(unitIndex, enrollmentDate, isOpenToAll);
+  const quizLocked = isUnitLockedByQuiz(unitIndex, courseData);
+  
+  if (quizLocked) {
+    return {
+      accessible: false,
+      statusText: 'Complete Previous Quiz',
+      statusColor: 'text-orange-600'
+    };
+  }
   
   if (status.accessible && status.daysLeft !== undefined) {
     return {
       ...status,
       statusText: `متاحة (${status.daysLeft} ${status.daysLeft === 1 ? 'يوم متبقي' : 'أيام متبقية'})`,
       statusColor: status.daysLeft <= 2 ? 'text-orange-600' : 'text-green-600'
+    };
+  }
+  
+  if (status.accessible && isOpenToAll) {
+    return {
+      ...status,
+      statusText: 'متاحة دائماً',
+      statusColor: 'text-green-600'
     };
   }
   
@@ -360,7 +427,7 @@ const CourseViewer: React.FC = () => {
 
   // Flatten all lessons with their indices, but only from accessible units
   courseData.units.forEach((unit, unitIndex) => {
-    const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate);
+    const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate, courseData.isOpenToAll);
     if (unitAccess.accessible) {
       unit.lessons.forEach((lesson, lessonIndex) => {
         allLessons.push({ unitIndex, lessonIndex, lesson });
@@ -371,7 +438,7 @@ const CourseViewer: React.FC = () => {
   // If no accessible lessons, find the first accessible unit and show message
   if (allLessons.length === 0) {
     for (let unitIndex = 0; unitIndex < courseData.units.length; unitIndex++) {
-      const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate);
+      const unitAccess = isUnitAccessible(unitIndex, courseData.enrollmentDate, courseData.isOpenToAll);
       if (unitAccess.message) {
         setError(unitAccess.message);
         return;
@@ -412,16 +479,8 @@ const CourseViewer: React.FC = () => {
   if (nextIndex < allLessons.length) {
     const { unitIndex, lessonIndex, lesson } = allLessons[nextIndex];
 
-    // Check for locking conditions within the same unit
-    let lock = false;
-    if (lessonIndex > 0) {
-      const prevLesson = courseData.units[unitIndex].lessons[lessonIndex - 1];
-      if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
-        lock = true;
-      }
-    }
-
-    if (!lock) {
+    // Check if lesson is locked by quiz
+    if (!isLessonLockedByQuiz(unitIndex, lessonIndex, courseData)) {
       setActiveUnit(unitIndex);
       setActiveLesson(lessonIndex);
       setSelectedLesson(lesson);
@@ -434,16 +493,9 @@ const CourseViewer: React.FC = () => {
   // Fallback: first available unlocked, not completed lesson among accessible lessons
   for (let i = 0; i < allLessons.length; i++) {
     const { unitIndex, lessonIndex, lesson } = allLessons[i];
-    let lock = false;
-    if (lessonIndex > 0) {
-      const prevLesson = courseData.units[unitIndex].lessons[lessonIndex - 1];
-      if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
-        lock = true;
-      }
-    }
 
     if (
-      !lock &&
+      !isLessonLockedByQuiz(unitIndex, lessonIndex, courseData) &&
       ((lesson.type === 'Video' && !lesson.isCompleted) || (lesson.type === 'Quiz' && !lesson.isQuizSubmitted))
     ) {
       setActiveUnit(unitIndex);
@@ -589,8 +641,14 @@ const CourseViewer: React.FC = () => {
       return;
     }
 
+    // Check if lesson is locked by quiz
+    if (isLessonLockedByQuiz(unitIndex, lessonIndex, courseDetails)) {
+      setError('يجب إكمال الاختبار السابق أولاً');
+      return;
+    }
+
     // Check if unit is accessible
-    const unitAccess = isUnitAccessible(unitIndex, courseDetails.enrollmentDate);
+    const unitAccess = isUnitAccessible(unitIndex, courseDetails.enrollmentDate, courseDetails.isOpenToAll);
     if (!unitAccess.accessible) {
       setError(unitAccess.message || 'هذه الوحدة غير متاحة حالياً');
       return;
@@ -989,7 +1047,7 @@ const CourseViewer: React.FC = () => {
             {/* Course Units List */}
             <div className="overflow-y-auto flex-1 py-4">
               {courseDetails?.units.map((unit, unitIndex) => {
-                const unitAccess = getUnitAccessStatus(unitIndex, courseDetails.enrollmentDate);
+                const unitAccess = getUnitAccessStatus(unitIndex, courseDetails.enrollmentDate, courseDetails.isOpenToAll, courseDetails);
                 const isUnitLocked = !unitAccess.accessible;
                 
                 return (
@@ -1043,16 +1101,9 @@ const CourseViewer: React.FC = () => {
                     {!isUnitLocked && (
                       <div className={`space-y-1 mt-1 ${collapsedUnits.includes(unit.id.toString()) ? 'hidden' : ''}`}>
                         {(() => {
-                          let lock = false;
                           return unit.lessons.map((lesson, lessonIndex) => {
-                            // If previous lesson is a quiz and not submitted, lock this and all next lessons
-                            if (lessonIndex > 0) {
-                              const prevLesson = unit.lessons[lessonIndex - 1];
-                              if (prevLesson.type === 'Quiz' && !prevLesson.isQuizSubmitted) {
-                                lock = true;
-                              }
-                            }
-                            const isLessonLocked = lock && !(activeUnit === unitIndex && activeLesson === lessonIndex);
+                            const isLessonLocked = isLessonLockedByQuiz(unitIndex, lessonIndex, courseDetails) && 
+                              !(activeUnit === unitIndex && activeLesson === lessonIndex);
                             
                             return (
                               <button
@@ -1134,8 +1185,8 @@ const CourseViewer: React.FC = () => {
               </div>
             ) : selectedLesson && lessonDetails ? (
               <div className="space-y-6">
-                {/* Unit Access Timer */}
-                {courseDetails && activeUnit !== null && (
+                {/* Unit Access Timer - Only show if course is not open to all */}
+                {courseDetails && activeUnit !== null && !courseDetails.isOpenToAll && (
                   <UnitAccessTimer 
                     unitIndex={activeUnit}
                     enrollmentDate={courseDetails.enrollmentDate}

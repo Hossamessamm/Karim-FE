@@ -68,6 +68,7 @@ export interface CourseDetails {
   imagePath: string;
   modificationDate: string;
   enrollmentDate: string;
+  isOpenToAll: boolean;
   units: Unit[];
 }
 
@@ -380,7 +381,7 @@ api.interceptors.response.use(
 export const useCourseApi = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const requestTimeoutRef = useRef<NodeJS.Timeout>();
+  const requestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const makeRequest = useCallback(async <T>(
     url: string,
