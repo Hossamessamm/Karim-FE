@@ -1,5 +1,5 @@
 import React from 'react';
-import teacherImage from '../assets/images/teachers/mahmoudelshikh.png';
+import teacherImage from '../assets/images/teachers/mr.karim.jpg';
 
 const About: React.FC = () => {
   return (
@@ -14,15 +14,15 @@ const About: React.FC = () => {
                 <div className="relative">
                   <img
                     src={teacherImage}
-                    alt="م. محمود الشيخ - مدرس التاريخ"
+                    alt="د/ كريم أيوب - مدرس الأحياء"
                     className="w-full h-auto max-w-lg rounded-3xl shadow-2xl transform group-hover:scale-[1.02] transition-transform duration-500"
                   />
                   <div className="absolute -bottom-6 right-8 left-8 bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
                     <h1 className="text-3xl font-bold text-gray-900 mb-1 font-arabic text-center">
-                      م. محمود الشيخ
+                      د/ كريم أيوب
                     </h1>
                     <div className="flex justify-center">
-                      <span className="text-lg text-blue-600 font-medium font-arabic">مدرس التاريخ</span>
+                      <span className="text-lg text-blue-600 font-medium font-arabic">مدرس الأحياء</span>
                     </div>
                   </div>
                 </div>
@@ -35,17 +35,17 @@ const About: React.FC = () => {
             {/* Title Badge */}
             <div className="inline-flex items-center bg-blue-50 rounded-full px-6 py-2 mb-12">
               <span className="w-2 h-2 bg-blue-600 rounded-full ml-3"></span>
-              <span className="text-blue-800 font-semibold">مدرس التاريخ المتميز</span>
+              <span className="text-blue-800 font-semibold">مدرس الأحياء المتميز</span>
             </div>
 
             {/* About Section */}
             <div className="prose prose-lg max-w-none mb-12">
               <div className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-8 border border-gray-100">
                 <p className="text-xl leading-relaxed text-gray-700 mb-6 font-arabic">
-                  م. محمود الشيخ - مدرس متميز في التاريخ مع خبرة أكثر من 10 سنوات في التدريس. تخرج من كلية الآداب قسم التاريخ بتقدير امتياز، ويحمل درجة الماجستير في التاريخ الإسلامي.
+                  د/ كريم أيوب - مدرس متميز في الأحياء مع خبرة أكثر من 10 سنوات في التدريس. تخرج من كلية العلوم قسم الأحياء بتقدير امتياز، ويحمل درجة الدكتوراه في علم الأحياء.
                 </p>
                 <p className="text-lg text-gray-600 font-arabic mb-4">
-                  متخصص في تدريس التاريخ لجميع المراحل الدراسية، من الابتدائية حتى الثانوية العامة، مع التركيز على تبسيط الأحداث التاريخية وجعل التعلم ممتعاً وفعالاً.
+                  متخصص في تدريس الأحياء لجميع المراحل الدراسية، من الابتدائية حتى الثانوية العامة، مع التركيز على تبسيط المفاهيم العلمية وجعل التعلم ممتعاً وفعالاً.
                 </p>
                 <p className="text-lg text-gray-600 font-arabic">
                   عمل في العديد من المدارس والمراكز التعليمية المرموقة، وساعد مئات الطلاب في تحقيق التفوق الدراسي والنجاح في الامتحانات.
@@ -63,10 +63,10 @@ const About: React.FC = () => {
               </h2>
               <div className="grid gap-4">
                 {[
-                  'ماجستير التاريخ الإسلامي',
+                  'دكتوراه في علم الأحياء',
+                  'ماجستير في علم الأحياء الجزيئي',
                   'دبلومة في طرق التدريس الحديثة',
-                  'شهادة في تعليم التاريخ التفاعلي',
-                  'دورة في تعليم التاريخ الحديث',
+                  'شهادة في تعليم العلوم التفاعلي',
                   'شهادة في إدارة الفصول الدراسية',
                   'دورة في تقنيات التعليم الإلكتروني'
                 ].map((cert, index) => (
@@ -93,10 +93,10 @@ const About: React.FC = () => {
               </h2>
               <div className="grid gap-4">
                 {[
-                  'تبسيط الأحداث التاريخية بطريقة سهلة',
-                  'استخدام قصص وأمثلة من التاريخ',
-                  'التدريب المستمر على تحليل الأحداث',
-                  'التركيز على الفهم العميق للتاريخ',
+                  'تبسيط المفاهيم العلمية بطريقة سهلة',
+                  'استخدام التجارب العملية والأمثلة',
+                  'التدريب المستمر على التحليل العلمي',
+                  'التركيز على الفهم العميق للأحياء',
                   'استخدام التقنيات الحديثة في التعليم',
                   'المتابعة المستمرة لتقدم الطالب'
                 ].map((feature, index) => (
@@ -123,12 +123,12 @@ const About: React.FC = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[
-                  { subject: 'التاريخ', level: 'جميع المراحل' },
-                  { subject: 'التاريخ الإسلامي', level: 'الثانوية العامة' },
-                  { subject: 'التاريخ الحديث', level: 'الثانوية العامة' },
-                  { subject: 'التاريخ القديم', level: 'المرحلة الثانوية' },
-                  { subject: 'تاريخ مصر', level: 'المرحلة الثانوية' },
-                  { subject: 'تاريخ العالم', level: 'الثانوية العامة' }
+                  { subject: 'الأحياء', level: 'جميع المراحل' },
+                  { subject: 'علم الأحياء الجزيئي', level: 'الثانوية العامة' },
+                  { subject: 'علم الوراثة', level: 'الثانوية العامة' },
+                  { subject: 'علم البيئة', level: 'المرحلة الثانوية' },
+                  { subject: 'علم الخلية', level: 'المرحلة الثانوية' },
+                  { subject: 'علم التصنيف', level: 'الثانوية العامة' }
                 ].map((item, index) => (
                   <div 
                     key={index} 
@@ -171,7 +171,7 @@ const About: React.FC = () => {
             <div className="relative group inline-block">
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-200"></div>
               <button className="relative px-8 py-4 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition-colors">
-                ابدأ رحلة التفوق مع منصة م. محمود الشيخ
+                ابدأ رحلة التفوق مع منصة د/ كريم أيوب
               </button>
             </div>
           </div>

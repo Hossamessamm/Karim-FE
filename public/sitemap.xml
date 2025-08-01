@@ -6,7 +6,7 @@
   
   <!-- Homepage -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/</loc>
+    <loc>https://karim-ayoub.com/</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -14,7 +14,7 @@
   
   <!-- About Page -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/about</loc>
+    <loc>https://karim-ayoub.com/about</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -22,7 +22,7 @@
   
   <!-- Login Page -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/login</loc>
+    <loc>https://karim-ayoub.com/login</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -30,7 +30,7 @@
   
   <!-- Register Page -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/register</loc>
+    <loc>https://karim-ayoub.com/register</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -38,7 +38,7 @@
   
   <!-- Forgot Password Page -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/forgot-password</loc>
+    <loc>https://karim-ayoub.com/forgot-password</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -46,7 +46,7 @@
   
   <!-- Reset Password Page -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/reset-password</loc>
+    <loc>https://karim-ayoub.com/reset-password</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -54,7 +54,7 @@
   
   <!-- Profile Page (Protected) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/profile</loc>
+    <loc>https://karim-ayoub.com/profile</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
@@ -62,7 +62,7 @@
   
   <!-- My Lectures Page (Protected) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/my-lectures</loc>
+    <loc>https://karim-ayoub.com/my-lectures</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -70,7 +70,7 @@
   
   <!-- Enrolled Courses Page (Protected) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/enrolled-courses</loc>
+    <loc>https://karim-ayoub.com/enrolled-courses</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -78,21 +78,21 @@
   
   <!-- Course Detail Pages (Dynamic) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/courses/1</loc>
+    <loc>https://karim-ayoub.com/courses/1</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/courses/2</loc>
+    <loc>https://karim-ayoub.com/courses/2</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/courses/3</loc>
+    <loc>https://karim-ayoub.com/courses/3</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -100,21 +100,21 @@
   
   <!-- Course Player Pages (Protected) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/course-player/1</loc>
+    <loc>https://karim-ayoub.com/course-player/1</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/course-player/2</loc>
+    <loc>https://karim-ayoub.com/course-player/2</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/course-player/3</loc>
+    <loc>https://karim-ayoub.com/course-player/3</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -122,21 +122,21 @@
   
   <!-- Unit Viewer Pages (Protected) -->
   <url>
-    <loc>https://mahmoud-elsheikh.com/unit-viewer/1</loc>
+    <loc>https://karim-ayoub.com/unit-viewer/1</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/unit-viewer/2</loc>
+    <loc>https://karim-ayoub.com/unit-viewer/2</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   
   <url>
-    <loc>https://mahmoud-elsheikh.com/unit-viewer/3</loc>
+    <loc>https://karim-ayoub.com/unit-viewer/3</loc>
     <lastmod>2024-01-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>

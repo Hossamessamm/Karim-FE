@@ -5,7 +5,7 @@ export interface TenantConfig {
 }
 
 // Default tenant configuration
-const DEFAULT_TENANT_ID = 'tenant3';
+const DEFAULT_TENANT_ID = 'tenant4';
 
 // Get tenant configuration from environment variables or use default
 const getTenantConfig = (): TenantConfig => {

@@ -1,16 +1,21 @@
 {
-  "short_name": "منصة م.محمود الشيخ",
-  "name": "منصة م.محمود الشيخ - المنصة التعليمية الرائدة",
+  "short_name": "منصة د.كريم أيوب",
+  "name": "منصة د.كريم أيوب - المنصة التعليمية الرائدة",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
     },
     {
-      "src": "logo.jpg",
-      "type": "image/jpeg",
-      "sizes": "512x512"
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo.png",
+      "type": "image/png",
+      "sizes": "64x64"
     }
   ],
   "start_url": ".",

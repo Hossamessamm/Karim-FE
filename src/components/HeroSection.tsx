@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Users, Award, Star, ChevronRight, Play, Sparkles } from 'lucide-react';
-import teacherImage from '../assets/images/teachers/mahmoudelshikh.png';
+import teacherImage from '../assets/images/teachers/mr.karim.jpg';
 
 const HeroSection = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -84,7 +84,7 @@ const HeroSection = () => {
                     <div className="w-full h-full rounded-[1.5rem] overflow-hidden bg-gradient-to-br from-slate-50 to-white shadow-inner">
                       <img
                         src={teacherImage}
-                        alt="محمود الشيخ"
+                        alt="د/ كريم أيوب"
                         className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
                       />
                       
@@ -124,11 +124,11 @@ const HeroSection = () => {
               <div className="mt-6 w-full max-w-sm">
                 <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 text-center shadow-lg hover:bg-white/15 transition-all duration-300">
                   <h3 className="text-2xl font-bold text-white mb-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                    محمود الشيخ
+                    د/ كريم أيوب
                   </h3>
                   <p className="text-purple-300 font-medium flex items-center justify-center gap-2">
                     <Sparkles className="w-4 h-4" />
-                    مدرس مادة التاريخ
+                    مدرس مادة الأحياء
                   </p>
                   
                   {/* Rating */}
@@ -147,12 +147,12 @@ const HeroSection = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-3 rounded-full shadow-lg mb-6 animate-bounce">
               <Sparkles className="w-5 h-5" />
-              <span className="font-bold">مدرس مادة التاريخ</span>
+              <span className="font-bold">مدرس مادة الأحياء</span>
             </div>
             {/* Main Title */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black mb-6 leading-tight">
               <span className="bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent drop-shadow-2xl">
-                منصة محمود الشيخ
+                منصة د/ كريم أيوب
               </span>
             </h1>
             {/* Subtitle */}
@@ -161,7 +161,7 @@ const HeroSection = () => {
                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                 </svg>
-                <span className="text-lg sm:text-2xl font-bold text-white tracking-wide">درجة التاريخ مضمونة</span>
+                <span className="text-lg sm:text-2xl font-bold text-white tracking-wide">درجة الأحياء مضمونة</span>
               </span>
             </div>
             {/* CTA Buttons */}

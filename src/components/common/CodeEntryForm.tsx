@@ -54,14 +54,14 @@ const CodeEntryForm: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Title */}
         <div className="text-center mb-6">
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-purple-700 mb-2 drop-shadow">
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-rose-700 mb-2 drop-shadow">
             أكواد محاضرات السنتر
           </h2>
         </div>
 
         {/* Form Container */}
-        <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-blue-100">
-          <h3 className="text-2xl sm:text-3xl font-bold text-indigo-700 mb-6 text-center">
+        <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl p-8 border border-rose-100">
+          <h3 className="text-2xl sm:text-3xl font-bold text-slate-700 mb-6 text-center">
             ادخل كود المحاضرة علشان تتفتحلك
           </h3>
 
@@ -107,7 +107,7 @@ const CodeEntryForm: React.FC = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 placeholder="اكتب كود المحاضرة هنا..."
-                className="w-full px-6 py-4 rounded-2xl border-2 border-indigo-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 bg-white text-lg text-right shadow-sm transition-all duration-200 outline-none"
+                className="w-full px-6 py-4 rounded-2xl border-2 border-rose-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-100 bg-white text-lg text-right shadow-sm transition-all duration-200 outline-none"
                 disabled={isEnteringCode || showSuccess}
               />
             </div>
@@ -115,7 +115,7 @@ const CodeEntryForm: React.FC = () => {
             <button
               type="submit"
               disabled={isEnteringCode || showSuccess || !code.trim()}
-              className="w-full px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-2xl shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              className="w-full px-8 py-4 bg-gradient-to-r from-rose-600 to-orange-600 text-white font-bold rounded-2xl shadow-lg hover:scale-105 hover:shadow-2xl transition-all duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             >
               {isEnteringCode ? (
                 <div className="flex items-center justify-center gap-2">

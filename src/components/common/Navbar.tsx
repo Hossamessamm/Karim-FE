@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, LogOut, Menu, X, Home, BookOpen, GraduationCap, PlayCircle } from 'lucide-react';
-import logoImage from '../../assets/images/logo/logo.jpg';
+import logoImage from '../../assets/images/logo/logo.png';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout, currentUser } = useAuth();
@@ -26,8 +26,8 @@ const Navbar: React.FC = () => {
   const navLinkClasses = (path: string) => `
     relative px-6 py-3 text-sm font-medium rounded-full transition-all duration-300 group
     ${isCurrentPath(path)
-      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-      : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+      ? 'bg-gradient-to-r from-rose-500 to-orange-600 text-white shadow-lg'
+      : 'text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 hover:text-rose-600'
     }
   `;
 
@@ -49,7 +49,7 @@ const Navbar: React.FC = () => {
                     <Home className="w-4 h-4 inline-block ml-2" />
                     الرئيسية
                     {isCurrentPath('/') && (
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-full"></div>
                     )}
                   </Link>
                   
@@ -98,13 +98,13 @@ const Navbar: React.FC = () => {
                 {isAuthenticated ? (
                   <div className="flex items-center gap-4">
                     {/* User info card */}
-                    <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-200/50 shadow-sm">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-gradient-to-r from-rose-50 to-orange-50 rounded-full border border-rose-200/50 shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center shadow-md">
                         <User className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-600">مرحباً،</span>
-                        <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="text-sm text-gray-600">ازيك يا دكتور:</span>
+                        <span className="text-sm font-bold bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text text-transparent">
                           {currentUser?.name}
                         </span>
                       </div>
@@ -126,16 +126,16 @@ const Navbar: React.FC = () => {
                   <div className="flex items-center gap-3">
                     <Link
                       to="/login"
-                      className="px-6 py-3 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-full transition-all duration-300 hover:bg-blue-50"
+                      className="px-6 py-3 text-sm font-medium text-gray-700 hover:text-rose-600 rounded-full transition-all duration-300 hover:bg-rose-50"
                     >
                       تسجيل الدخول
                     </Link>
                     <Link
                       to="/register"
-                      className="group relative px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105 overflow-hidden"
+                      className="group relative px-6 py-3 bg-gradient-to-r from-rose-600 to-orange-600 text-white rounded-full font-medium shadow-lg hover:shadow-xl hover:shadow-rose-500/25 transition-all duration-300 transform hover:scale-105 overflow-hidden"
                     >
                       <span className="relative z-10">إنشاء حساب</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute inset-0 bg-gradient-to-r from-rose-700 to-orange-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </Link>
                   </div>
                 )}
@@ -145,7 +145,7 @@ const Navbar: React.FC = () => {
               <div className="md:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="relative p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200/50 shadow-sm hover:shadow-md transition-all duration-300"
+                  className="relative p-2 bg-gradient-to-r from-rose-50 to-orange-50 rounded-xl border border-rose-200/50 shadow-sm hover:shadow-md transition-all duration-300"
                 >
                   {!isMobileMenuOpen ? (
                     <Menu className="w-6 h-6 text-gray-700" />
@@ -176,8 +176,8 @@ const Navbar: React.FC = () => {
                 to="/"
                 className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
                   isCurrentPath('/') 
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                    ? 'bg-gradient-to-r from-rose-500 to-orange-600 text-white shadow-lg' 
+                    : 'text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 hover:text-rose-600'
                 }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -190,7 +190,7 @@ const Navbar: React.FC = () => {
                   scrollToCourses();
                   setIsMobileMenuOpen(false);
                 }}
-                className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600 transition-all duration-300"
+                className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 hover:text-rose-600 transition-all duration-300"
               >
                 <BookOpen className="w-5 h-5" />
                 الباقات
@@ -203,8 +203,8 @@ const Navbar: React.FC = () => {
                     to="/my-lectures"
                     className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
                       isCurrentPath('/my-lectures')
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                        ? 'bg-gradient-to-r from-rose-500 to-orange-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 hover:text-rose-600'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -215,8 +215,8 @@ const Navbar: React.FC = () => {
                     to="/enrolled-courses"
                     className={`flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl transition-all duration-300 ${
                       isCurrentPath('/enrolled-courses')
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:text-blue-600'
+                        ? 'bg-gradient-to-r from-rose-500 to-orange-600 text-white shadow-lg'
+                        : 'text-gray-700 hover:bg-gradient-to-r hover:from-rose-50 hover:to-orange-50 hover:text-rose-600'
                     }`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -230,12 +230,12 @@ const Navbar: React.FC = () => {
               <div className="pt-4 border-t border-gray-200/50">
                 {isAuthenticated ? (
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-rose-50 to-orange-50 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-orange-600 flex items-center justify-center">
                         <User className="w-4 h-4 text-white" />
                       </div>
                       <span className="text-sm font-medium text-gray-700">
-                        مرحباً، {currentUser?.name}
+                    ازيك يا دكتور: {currentUser?.name}
                       </span>
                     </div>
                     <button
@@ -253,14 +253,14 @@ const Navbar: React.FC = () => {
                   <div className="space-y-2">
                     <Link
                       to="/login"
-                      className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-300"
+                      className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl text-gray-700 hover:bg-rose-50 hover:text-rose-600 transition-all duration-300"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       تسجيل الدخول
                     </Link>
                     <Link
                       to="/register"
-                      className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium shadow-lg transition-all duration-300"
+                      className="flex items-center gap-3 w-full text-right px-4 py-3 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 text-white font-medium shadow-lg transition-all duration-300"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       إنشاء حساب

@@ -2,6 +2,11 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useContact } from '../../hooks/useContact';
 import { BookOpen, Home, Users, Star, Sparkles } from 'lucide-react';
+import microbiologyIcon from '../../assets/images/microbiology.png';
+import bacteriaIcon from '../../assets/images/bacteria.png';
+import experimentIcon from '../../assets/images/experiment.png';
+import microscopeIcon from '../../assets/images/microscope.png';
+import genomeIcon from '../../assets/images/genome.png';
 
 const Footer: React.FC = () => {
   const { contactInfo } = useContact();
@@ -61,7 +66,7 @@ const Footer: React.FC = () => {
           </a>
         ) : (
           <div
-            className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/10 text-white/50 cursor-not-allowed border border-white/10"
+            className="flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
             title={`${type.charAt(0).toUpperCase() + type.slice(1)} غير متاح`}
           >
             {icons[type]}
@@ -72,27 +77,56 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="relative bg-gradient-to-br from-slate-900 via-purple-900 to-indigo-900 text-white overflow-hidden" dir="rtl">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute bottom-20 left-1/2 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Floating Particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(15)].map((_, i) => (
+    <footer className="relative bg-white text-slate-800 overflow-hidden border-t border-slate-200" dir="rtl">
+      {/* Floating Biology Icons Background */}
+      <div className="absolute inset-0 pointer-events-none select-none overflow-hidden">
+        {[
+          // Top row
+          { icon: microbiologyIcon, top: '5%', left: '8%', size: 45, animation: 'animate-float-slow', delay: 0 },
+          { icon: bacteriaIcon, top: '10%', left: '30%', size: 40, animation: 'animate-float-medium', delay: 1 },
+          { icon: experimentIcon, top: '8%', left: '60%', size: 50, animation: 'animate-float-fast', delay: 2 },
+          { icon: microscopeIcon, top: '12%', left: '85%', size: 35, animation: 'animate-float-slow', delay: 3 },
+          
+          // Middle top row
+          { icon: genomeIcon, top: '25%', left: '15%', size: 55, animation: 'animate-float-medium', delay: 1.5 },
+          { icon: microbiologyIcon, top: '30%', left: '45%', size: 40, animation: 'animate-float-fast', delay: 2.5 },
+          { icon: bacteriaIcon, top: '28%', left: '75%', size: 45, animation: 'animate-float-slow', delay: 3.5 },
+          
+          // Middle row
+          { icon: experimentIcon, top: '45%', left: '8%', size: 55, animation: 'animate-float-medium', delay: 0.5 },
+          { icon: microscopeIcon, top: '48%', left: '35%', size: 40, animation: 'animate-float-fast', delay: 1.5 },
+          { icon: genomeIcon, top: '52%', left: '65%', size: 50, animation: 'animate-float-slow', delay: 2.5 },
+          { icon: microbiologyIcon, top: '47%', left: '90%', size: 35, animation: 'animate-float-medium', delay: 3.5 },
+          
+          // Middle bottom row
+          { icon: bacteriaIcon, top: '65%', left: '20%', size: 45, animation: 'animate-float-fast', delay: 1 },
+          { icon: experimentIcon, top: '68%', left: '50%', size: 55, animation: 'animate-float-slow', delay: 2 },
+          { icon: microscopeIcon, top: '70%', left: '80%', size: 40, animation: 'animate-float-medium', delay: 3 },
+          
+          // Bottom row
+          { icon: genomeIcon, top: '85%', left: '12%', size: 50, animation: 'animate-float-fast', delay: 0.5 },
+          { icon: microbiologyIcon, top: '88%', left: '40%', size: 35, animation: 'animate-float-slow', delay: 1.5 },
+          { icon: bacteriaIcon, top: '82%', left: '70%', size: 45, animation: 'animate-float-medium', delay: 2.5 },
+          { icon: experimentIcon, top: '86%', left: '92%', size: 40, animation: 'animate-float-fast', delay: 3.5 }
+        ].map((item, index) => (
           <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-float"
+            key={index}
+            className={`absolute ${item.animation}`}
             style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${3 + Math.random() * 4}s`
+              top: item.top,
+              left: item.left,
+              opacity: 0.05,
+              width: `${item.size}px`,
+              height: `${item.size}px`,
+              animationDelay: `${item.delay}s`,
             }}
-          />
+          >
+            <img
+              src={item.icon}
+              alt="biology icon"
+              className="w-full h-full object-contain"
+            />
+          </div>
         ))}
       </div>
 
@@ -102,15 +136,14 @@ const Footer: React.FC = () => {
           {/* Brand Section */}
           <div className="lg:col-span-2 text-center lg:text-right">
             <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
-              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center shadow-lg">
+              <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 flex items-center justify-center shadow-lg shadow-rose-500/25">
                 <Sparkles className="w-6 h-6 text-white" />
                 <div className="absolute inset-0 rounded-2xl bg-white/10"></div>
               </div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-                منصة م.محمود الشيخ
-              </h2>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-rose-600 bg-clip-text text-transparent">
+منصة د/ كريم أيوب              </h2>
             </div>
-            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
+            <p className="text-slate-600 text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
               نقدم تعليمًا عالي الجودة لطلاب جميع المراحل الدراسية. 
               تعلم بالسرعة التي تناسبك مع باقاتنا التفاعلية التي يقودها الخبراء.
             </p>
@@ -122,10 +155,10 @@ const Footer: React.FC = () => {
                 { icon: BookOpen, number: "98%", label: "نسبة النجاح" },
                 { icon: Star, number: "4.9", label: "تقييم الطلاب" }
               ].map((stat, index) => (
-                <div key={index} className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-                  <div className="text-xl font-bold text-white">{stat.number}</div>
-                  <div className="text-xs text-gray-300">{stat.label}</div>
+                <div key={index} className="bg-slate-50 rounded-2xl p-4 border border-slate-200 hover:bg-slate-100 transition-all duration-300 hover:border-rose-300">
+                  <stat.icon className="w-6 h-6 text-rose-500 mx-auto mb-2" />
+                  <div className="text-xl font-bold text-slate-800">{stat.number}</div>
+                  <div className="text-xs text-slate-600">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -133,8 +166,8 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div className="text-center lg:text-right">
-            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2">
-              <Home className="w-5 h-5 text-purple-400" />
+            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2 text-slate-800">
+              <Home className="w-5 h-5 text-rose-500" />
               روابط سريعة
             </h3>
             <div className="space-y-4">
@@ -143,23 +176,23 @@ const Footer: React.FC = () => {
                 // { to: "/about", label: "عن المنصة", icon: Users },
                 { label: "الباقات", icon: BookOpen, isLink: false },
               ].map((link, index) => (
-                link.isLink ? (
+                link.isLink && link.to ? (
                   <Link
                     key={index}
                     to={link.to}
-                    className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1"
+                    className="group flex items-center justify-center lg:justify-start gap-3 text-slate-600 hover:text-slate-800 transition-all duration-300 hover:translate-x-1"
                   >
-                    <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
-                    <span className="group-hover:text-white">{link.label}</span>
+                    <link.icon className="w-4 h-4 text-rose-500 group-hover:text-rose-600" />
+                    <span className="group-hover:text-slate-800">{link.label}</span>
                   </Link>
                 ) : (
                   <button
                     key={index}
                     onClick={scrollToCourses}
-                    className="group flex items-center justify-center lg:justify-start gap-3 text-gray-300 hover:text-white transition-all duration-300 hover:translate-x-1 w-full text-right"
+                    className="group flex items-center justify-center lg:justify-start gap-3 text-slate-600 hover:text-slate-800 transition-all duration-300 hover:translate-x-1 w-full text-right"
                   >
-                    <link.icon className="w-4 h-4 text-purple-400 group-hover:text-purple-300" />
-                    <span className="group-hover:text-white">{link.label}</span>
+                    <link.icon className="w-4 h-4 text-rose-500 group-hover:text-rose-600" />
+                    <span className="group-hover:text-slate-800">{link.label}</span>
                   </button>
                 )
               ))}
@@ -168,8 +201,8 @@ const Footer: React.FC = () => {
 
           {/* Contact & Social */}
           <div className="text-center lg:text-right">
-            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2">
-              <Users className="w-5 h-5 text-purple-400" />
+            <h3 className="text-xl font-bold mb-6 flex items-center justify-center lg:justify-start gap-2 text-slate-800">
+              <Users className="w-5 h-5 text-rose-500" />
               تواصل معنا
             </h3>
             
@@ -177,7 +210,7 @@ const Footer: React.FC = () => {
             <div className="mb-6">
               <Link 
                 to="/register" 
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-500 to-orange-500 text-white px-6 py-3 rounded-2xl font-bold shadow-lg shadow-rose-500/25 hover:shadow-rose-500/50 transition-all duration-300 transform hover:scale-105"
               >
                 <Star className="w-5 h-5" />
                 انضم إلينا الآن
@@ -195,7 +228,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="pt-8 border-t border-white/10">
+        <div className="pt-8 border-t border-slate-200">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
             <div className="text-center lg:text-right flex flex-col sm:flex-row items-center gap-2">
              
@@ -203,32 +236,21 @@ const Footer: React.FC = () => {
                 href="https://wa.me/201114706613"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-emerald-400 text-sm font-bold hover:underline hover:text-emerald-300 transition-colors duration-200 cursor-pointer ml-2"
+                className="text-rose-600 text-sm font-bold hover:underline hover:text-rose-700 transition-colors duration-200 cursor-pointer ml-2"
                 title="تواصل مع Edu Craft عبر واتساب"
               >
                 جميع الحقوق محفوظة لشركة Edu Craft
               </a>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-gray-400 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2 text-slate-500 text-sm">
+                <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>
                 <span>متاح الآن</span>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Custom Animations */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(5deg); }
-        }
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-      `}</style>
     </footer>
   );
 };

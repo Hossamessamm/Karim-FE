@@ -31,8 +31,8 @@ const BookCardShimmer = () => (
 // Empty state component
 const EmptyState = () => (
   <div className="col-span-full text-center py-12">
-    <div className="inline-block p-4 bg-purple-100 rounded-full mb-4">
-      <BookOpen className="w-8 h-8 text-purple-600" />
+    <div className="inline-block p-4 bg-rose-100 rounded-full mb-4">
+      <BookOpen className="w-8 h-8 text-rose-600" />
     </div>
     <h3 className="text-lg font-medium text-gray-900 mb-2">لا توجد كتب متاحة</h3>
     <p className="text-gray-500">لا توجد كتب متاحة حالياً لهذه المرحلة الدراسية.</p>
@@ -49,7 +49,7 @@ const ErrorState = ({ error, onRetry }: { error: string; onRetry: () => void }) 
     <p className="text-gray-500 mb-4">{error}</p>
     <button
       onClick={onRetry}
-      className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+      className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
     >
       إعادة المحاولة
     </button>
@@ -106,7 +106,7 @@ const Pagination = ({
           disabled={typeof page !== 'number'}
           className={`px-3 py-2 rounded-lg ${
             page === currentPage
-              ? 'bg-purple-600 text-white'
+              ? 'bg-rose-600 text-white'
               : typeof page === 'number'
               ? 'border border-gray-300 hover:bg-gray-50'
               : 'cursor-default'
@@ -203,8 +203,8 @@ const BooksList: React.FC = () => {
           onClick={() => handleGradeChange(grade.value)}
           className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
             selectedGrade === grade.value
-              ? 'bg-purple-600 text-white shadow-md hover:shadow-lg hover:bg-purple-700'
-              : 'bg-white text-gray-600 hover:bg-purple-50 hover:text-purple-600 border border-gray-200'
+              ? 'bg-rose-600 text-white shadow-md hover:shadow-lg hover:bg-rose-700'
+              : 'bg-white text-gray-600 hover:bg-rose-50 hover:text-rose-600 border border-gray-200'
           }`}
         >
           {grade.label}
@@ -224,8 +224,8 @@ const BooksList: React.FC = () => {
           <p className="text-gray-600">
             {totalCount > 0 ? (
               <>
-                عرض <span className="font-semibold text-purple-600">{books.length}</span> من أصل{' '}
-                <span className="font-semibold text-purple-600">{totalCount}</span> كتاب
+                عرض <span className="font-semibold text-rose-600">{books.length}</span> من أصل{' '}
+                <span className="font-semibold text-rose-600">{totalCount}</span> كتاب
               </>
             ) : (
               'لا توجد كتب متاحة'

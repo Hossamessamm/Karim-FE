@@ -1,19 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import CourseList from '../components/course/CourseList';
+import BooksList from '../components/common/BooksList';
+import CodeEntryForm from '../components/common/CodeEntryForm';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import teacherImage from '../assets/images/teachers/omar-elkholy.jpg';
-import BooksList from '../components/common/BooksList';
-import HeroSection from '../components/HeroSection';
-import CodeEntryForm from '../components/common/CodeEntryForm';
+import teacherImage from '../assets/images/teachers/mr.karim.jpg';
+import FloatingBiologyIcons from '../components/common/FloatingBiologyIcons';
+import { 
+  ArrowRight, 
+  BookOpen, 
+  Users, 
+  Star, 
+  Play, 
+  Target, 
+  MessageCircle, 
+  Zap,
+  Trophy,
+  Brain,
+  Sparkles,
+  ChevronDown,
+  Check
+} from 'lucide-react';
 
 interface Stat {
   number: string;
   label: string;
+  icon: React.ComponentType<any>;
 }
 
 const Home: React.FC = () => {
   const { isAuthenticated } = useAuth();
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+  
+  // Testimonials carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Entrance animation
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
   
   const scrollToCourses = () => {
     const coursesSection = document.getElementById('courses-section');
@@ -23,310 +54,367 @@ const Home: React.FC = () => {
   };
 
   const stats: Stat[] = [
-    { number: '4000+', label: 'طالب معانا' },
-    { number: '99+', label: 'فيديو تعليمي' },
-    { number: '24 ساعة', label: 'دعم على طول' }
+    { number: '4000+', label: 'طالب مشترك', icon: Users },
+    { number: '99+', label: 'فيديو تعليمي', icon: Play },
+    { number: '24/7', label: 'دعم متواصل', icon: MessageCircle }
+  ];
+
+  const features = [
+    {
+      icon: Brain,
+      title: 'تعلم ذكي',
+      description: 'نظام تعلم تكيفي يتناسب مع مستواك وسرعة تعلمك',
+      color: 'from-emerald-500 to-teal-600',
+      bgColor: 'bg-emerald-50',
+      textColor: 'text-emerald-700'
+    },
+    {
+      icon: Target,
+      title: 'أهداف واضحة',
+      description: 'خطة دراسية مُحكمة تضمن وصولك للتفوق',
+      color: 'from-blue-500 to-indigo-600',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-700'
+    },
+    {
+      icon: Zap,
+      title: 'تفاعل مباشر',
+      description: 'تمارين تفاعلية وامتحانات فورية لتقييم مستواك',
+      color: 'from-amber-500 to-orange-600',
+      bgColor: 'bg-amber-50',
+      textColor: 'text-amber-700'
+    },
+    {
+      icon: Trophy,
+      title: 'إنجازات ومكافآت',
+      description: 'نظام نقاط وشارات لتحفيزك على التقدم',
+      color: 'from-orange-500 to-rose-600',
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-700'
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: 'أحمد علي',
+      role: 'طالب في المنصة',
+      content: 'شرح الدكتور كريم فوق الممتاز، المنصة ساعدتني أفهم الأحياء بجد.',
+      rating: 5,
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
+    {
+      name: 'فاطمة محمد',
+      role: 'طالبة متفوقة',
+      content: 'أفضل منصة تعليمية للأحياء، المحتوى منظم ومفهوم جداً.',
+      rating: 5,
+      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
+    {
+      name: 'محمد أحمد',
+      role: 'طالب في الثانوية',
+      content: 'المنصة غيرت طريقة فهمي للأحياء، أصبحت أحب المادة.',
+      rating: 5,
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50 to-white" dir="rtl">
-      <HeroSection />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 font-cairo" dir="rtl">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100">
+        {/* Floating Biology Icons */}
+        <FloatingBiologyIcons 
+          count={40}
+          opacity={0.15}
+          minSize={45}
+          maxSize={75}
+        />
+        
+        {/* Subtle Pattern */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(156,163,175,0.08)_1px,transparent_0)] bg-[size:20px_20px] opacity-30"></div>
+        
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            {/* Content */}
+            <div className="space-y-8 text-center lg:text-right">
+              {/* Badge */}
+              <div className={`inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-rose-200 rounded-2xl px-6 py-3 shadow-lg transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                <Sparkles className="w-5 h-5 text-rose-500 animate-pulse" />
+                <span className="text-sm font-bold bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text text-transparent animate-text-shimmer">
+                منصة الأحياء الأولى في مصر
+                </span>
+              </div>
+
+              {/* Main Title */}
+              <div className="space-y-6">
+                <h1 className={`text-4xl sm:text-6xl lg:text-6xl font-black leading-tight py-8 overflow-visible z-10 transform transition-all duration-1000 delay-300 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                  <span className="block text-2xl sm:text-2xl lg:text-3xl font-bold text-gray-600 mt-4 mb-4 animate-fade-in-up">منصة</span>
+                  <span className="block bg-gradient-to-r from-rose-600 via-pink-600 to-orange-600 bg-clip-text text-transparent overflow-visible leading-[1.15] animate-gradient-shift">د/ كريم أيوب</span>
+                </h1>
+                
+                <p className={`text-xl text-gray-700 leading-relaxed max-w-2xl mx-auto lg:mx-0 mt-6 mb-8 transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                  اكتشف طريقة جديدة وممتعة لتعلم مادة الأحياء مع أفضل المناهج التعليمية
+                </p>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className={`flex flex-col sm:flex-row gap-4 justify-center lg:justify-start transform transition-all duration-1000 delay-700 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                <button
+                  onClick={scrollToCourses}
+                  className="group relative bg-gradient-to-r from-rose-500 to-orange-500 text-white px-8 py-4 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl animate-bounce-subtle"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 rounded-2xl"></div>
+                  <div className="flex items-center justify-center gap-3 relative z-10">
+                    <span className="font-bold text-lg">
+                      ابدأ رحلتك الآن
+                    </span>
+                    <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform duration-300" />
+                  </div>
+                </button>
+                
+                <Link
+                  to="/about"
+                  className="group relative bg-white text-gray-700 px-8 py-4 rounded-2xl transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-200 hover:border-rose-300"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="font-bold text-lg">
+                      تعرف علينا
+                    </span>
+                    <ChevronDown className="w-6 h-6 group-hover:translate-y-1 transition-transform duration-300" />
+                  </div>
+                </Link>
+              </div>
+
+              {/* Stats */}
+              <div className={`grid grid-cols-3 gap-6 pt-8 transform transition-all duration-1000 delay-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
+                {stats.map((stat, index) => (
+                  <div key={index} className="text-center group hover:scale-105 transition-all duration-300">
+                    <div className="flex justify-center mb-2">
+                      <div className="w-10 h-10 bg-gradient-to-r from-rose-500 to-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg group-hover:shadow-xl">
+                        <stat.icon className="w-5 h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">
+                      {stat.number}
+                    </div>
+                    <div className="text-sm text-gray-600 font-medium">
+                      {stat.label}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Image */}
+            <div className={`relative transform transition-all duration-1000 delay-500 ${isVisible ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-10 opacity-0 scale-95'}`}>
+              <div className="relative z-10 group">
+                <img
+                  src={teacherImage}
+                  alt="د/ كريم أيوب"
+                  className="w-full h-auto rounded-3xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 to-orange-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              </div>
+              
+              {/* Floating Experience Badge */}
+              <div className="absolute top-1 sm:top-6 right-1 sm:right-6 bg-white rounded-xl shadow-lg p-3 sm:p-4 flex items-center gap-2 sm:gap-3 animate-float border border-rose-200 backdrop-blur-sm z-20" style={{ animationDelay: '1s' }}>
+                <div className="bg-rose-50 rounded-lg p-1.5 sm:p-2">
+                  <svg className="w-4 h-4 sm:w-6 sm:h-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-xs sm:text-sm font-semibold text-gray-900">خبرة تدريس</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500">+10 سنوات</div>
+                </div>
+              </div>
+              
+              {/* Decorative elements */}
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-rose-400 to-orange-400 rounded-full opacity-20 blur-xl animate-pulse"></div>
+              <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-r from-pink-400 to-rose-400 rounded-full opacity-20 blur-xl animate-pulse delay-1000"></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Features Section */}
-      <section className="relative py-24 bg-gradient-to-b from-white to-blue-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-100 to-pink-100 backdrop-blur-md px-6 py-3 rounded-full border border-purple-200/50 mb-8">
-              <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-              <span className="text-purple-700 font-medium">إيه اللي مميزنا</span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6">
-              <span>ليه تختار </span>
-              <span className="mx-3 text-transparent bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text">منصة م.محمود الشيخ</span>
-              <span>؟</span>
+      <section className="py-20 bg-white relative overflow-hidden">
+        {/* Floating Biology Icons */}
+        <FloatingBiologyIcons 
+          count={40}
+          opacity={0.1}
+          minSize={40}
+          maxSize={60}
+        />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-up">
+              ليه تختار منصتنا؟
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              تعال شوف إيه اللي هيخليك تحب الدراسة وتتفوق فيها
-            </p>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up delay-200">
+معنا درجات الأحياء مضمونة            </p>
           </div>
 
-          {/* Features Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              {
-                icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                ),
-                title: 'حل كل الكتب الخارجية',
-                description: 'هنحل الامتحان - المصدر - البوكليت - التميز وكل حاجة تخطر على بالك',
-                gradient: 'from-blue-500 to-blue-600'
-              },
-              {
-                icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                  </svg>
-                ),
-                title: 'مراجعة على طول',
-                description: 'امتحانات قبل المحاضرة وبعدها وامتحانات شهرية عشان متنساش اللي اتعلمته',
-                gradient: 'from-emerald-500 to-teal-600'
-              },
-              {
-                icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                ),
-                title: 'تشجيع وهدايا',
-                description: 'جوائز حلوة وهدايا مميزة للطلاب المتفوقين عشان نحفزك على التفوق',
-                gradient: 'from-purple-500 to-pink-600'
-              },
-              {
-                icon: (
-                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
-                  </svg>
-                ),
-                title: 'دعم 24 ساعة',
-                description: 'فريق الدعم موجود معاك في أي وقت لو عندك أي استفسار أو مشكلة',
-                gradient: 'from-orange-500 to-red-600'
-              }
-            ].map((feature, index) => (
-              <div key={index} className="group relative p-8 bg-white/80 backdrop-blur-md rounded-2xl border border-gray-200/50 hover:bg-white/90 transition-all duration-300 transform hover:-translate-y-2 shadow-lg">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative">
-                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-6 text-white group-hover:scale-110 transition-transform duration-300`}>
-                    {feature.icon}
+            {features.map((feature, index) => (
+              <div key={index} className="group relative animate-fade-in-up" style={{ animationDelay: `${index * 200}ms` }}>
+                <div className={`${feature.bgColor} rounded-3xl p-8 h-full transform group-hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl group-hover:-translate-y-2`}>
+                  <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 group-hover:rotate-12`}>
+                    <feature.icon className="w-8 h-8 text-white" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800 mb-4">{feature.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+                  <h3 className={`text-xl font-bold ${feature.textColor} mb-4 group-hover:scale-105 transition-transform duration-300`}>
+                    {feature.title}
+                  </h3>
+                  <p className="text-gray-600 leading-relaxed group-hover:text-gray-800 transition-colors duration-300">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         </div>
       </section>
-      
-      {/* Courses Section */}
-      <div id="courses-section" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            {/* Modern Badge */}
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-100 to-orange-100 px-8 py-4 rounded-full border border-amber-200/50 mb-8 shadow-lg">
-              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-              <span className="text-amber-700 font-bold text-lg">
-                {isAuthenticated ? 'مخصوص ليك' : 'اختار اللي يناسبك'}
-              </span>
-              <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
-                </svg>
-              </div>
-            </div>
-            
-            {/* Enhanced Title */}
-            <h2 className="text-5xl lg:text-7xl font-black mb-8 leading-tight">
-              <span className="inline-flex items-center gap-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl transform rotate-12 animate-pulse">
-                  <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                  </svg>
-                </div>
-                <span className="text-gray-800">
-                الباقات
-                </span>
-                <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-                المميزة
-                </span>
-              </span>
+{/* Courses Section */}
+      <section id="courses-section" className="py-20 bg-white relative overflow-hidden">
+        {/* Floating Biology Icons */}
+        <FloatingBiologyIcons 
+          count={12}
+          opacity={0.12}
+          minSize={45}
+          maxSize={65}
+        />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4 animate-fade-in-up">
+              اكتشف دوراتنا التعليمية
             </h2>
-            
-            {/* Subtitle */}
-            <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-              شوف الباقات المميزة اللي عملناها خصيصاً عشان تنجح وتتفوق
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto animate-fade-in-up delay-200">
+              مجموعة شاملة من الدورات التعليمية تغطي جميع فصول مادة الأحياء
             </p>
-            
-            {/* Decorative Elements */}
-            <div className="flex justify-center items-center gap-4 mb-12">
-              <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
-              <div className="w-3 h-3 bg-amber-400 rounded-full animate-pulse"></div>
-              <div className="w-20 h-px bg-gradient-to-r from-transparent via-amber-400 to-transparent"></div>
-            </div>
           </div>
-          
-          {/* Course List Container */}
-          <div className="relative">
+
+          <div className="animate-fade-in-up delay-500">
             <CourseList />
           </div>
         </div>
-      </div>
-
+      </section>
       {/* Books Section */}
-      <div id="books-section" className="py-24 bg-gradient-to-b from-slate-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-100 to-emerald-100 backdrop-blur-md px-6 py-3 rounded-full border border-green-200/50 mb-8">
-              <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 2H8c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H8V4h11v16zM6 6H4v16c0 1.1.9 2 2 2h12v-2H6V6z"/>
-              </svg>
-              <span className="text-green-700 font-medium">كتبنا المميزة</span>
-            </div>
-            <h2 className="text-4xl lg:text-5xl font-bold text-gray-800 mb-6 flex items-center justify-center gap-4">
-              <svg className="w-10 h-10 text-green-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 2H8c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H8V4h11v16zM6 6H4v16c0 1.1.9 2 2 2h12v-2H6V6z"/>
-              </svg>
-              <span> كتبنا <span className="text-transparent bg-gradient-to-r from-green-500 to-emerald-500 bg-clip-text">المميزة</span></span>
+      <section className="py-20 bg-white relative overflow-hidden">
+        {/* Floating Biology Icons */}
+        <FloatingBiologyIcons 
+          count={8}
+          opacity={0.1}
+          minSize={40}
+          maxSize={60}
+        />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-rose-600 to-orange-600 bg-clip-text text-transparent mb-4 animate-fade-in-up animate-gradient-shift">
+              الكتب التعليمية
             </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto animate-fade-in-up delay-200">
+              مجموعة شاملة من الكتب والمراجع التعليمية لدعم دراستك
+            </p>
           </div>
-          <BooksList />
+
+          <div className="animate-fade-in-up delay-500">
+            <BooksList />
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* Lecture Code Section */}
-      <div className="py-16 bg-gradient-to-br from-white via-blue-50 to-purple-50">
-        <CodeEntryForm />
-      </div>
+      {/* Unit Codes Section */}
+      <section className="py-20 bg-gray-50 relative overflow-hidden">
+        {/* Floating Biology Icons */}
+        <FloatingBiologyIcons 
+          count={6}
+          opacity={0.08}
+          minSize={35}
+          maxSize={50}
+        />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent mb-4 animate-fade-in-up animate-gradient-shift">
+              أكواد المحاضرات
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto animate-fade-in-up delay-200">
+              ادخل كود المحاضرة للوصول إلى المحتوى التعليمي المميز
+            </p>
+          </div>
 
-      <style>{`
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
+          <div className="flex justify-center animate-fade-in-up delay-500">
+            <CodeEntryForm />
+          </div>
+        </div>
+      </section>
+      
+      
 
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 0.5; transform: scale(1); }
-          50% { opacity: 0.8; transform: scale(1.05); }
-        }
-
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-        }
-
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-10px); }
-        }
-
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-        }
-
-        @keyframes twinkle {
-          0%, 100% { opacity: 0; }
-          50% { opacity: 1; }
-        }
-
-        @keyframes slide-in-right {
-          from { 
-            opacity: 0;
-            transform: translateX(50px);
+      {/* Custom CSS for animations */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          @keyframes fade-in-up {
+            from {
+              opacity: 0;
+              transform: translateY(30px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
-          to { 
-            opacity: 1;
-            transform: translateX(0);
+
+          @keyframes gradient-shift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
           }
-        }
 
-        @keyframes slide-in-left {
-          from { 
-            opacity: 0;
-            transform: translateX(-50px);
+          @keyframes text-shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
           }
-          to { 
-            opacity: 1;
-            transform: translateX(0);
+
+          @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
           }
-        }
 
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
+          .animate-fade-in-up {
+            animation: fade-in-up 0.8s ease-out forwards;
           }
-          to {
-            opacity: 1;
-            transform: translateY(0);
+
+          .animate-gradient-shift {
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
           }
-        }
 
-        @keyframes image-reveal {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
+          .animate-text-shimmer {
+            background-size: 200% 200%;
+            animation: text-shimmer 2s ease infinite;
           }
-          to {
-            opacity: 1;
-            transform: scale(1);
+
+          .animate-bounce-subtle {
+            animation: bounce-subtle 2s ease-in-out infinite;
           }
-        }
 
-        .animate-gradient {
-          animation: gradient 8s ease infinite;
-          background-size: 400% 400%;
-        }
+          @keyframes float {
+            0%, 100% { 
+              transform: translateY(0px) rotate(0deg);
+            }
+            50% { 
+              transform: translateY(-10px) rotate(2deg);
+            }
+          }
 
-        .animate-gradient-x {
-          animation: gradient-x 3s ease infinite;
-          background-size: 400% 400%;
-        }
-
-        .animate-pulse-slow {
-          animation: pulse-slow 4s ease-in-out infinite;
-        }
-
-        .animate-bounce-slow {
-          animation: bounce-slow 6s ease-in-out infinite;
-        }
-
-        .animate-float {
-          animation: float 3s ease-in-out infinite;
-        }
-
-        .animate-float-delayed {
-          animation: float-delayed 3s ease-in-out infinite;
-          animation-delay: 1.5s;
-        }
-
-        .animate-twinkle {
-          animation: twinkle 2s ease-in-out infinite;
-        }
-
-        .animate-slide-in-right {
-          animation: slide-in-right 1s ease-out;
-        }
-
-        .animate-slide-in-left {
-          animation: slide-in-left 1s ease-out;
-        }
-
-        .animate-fade-in {
-          animation: fade-in 1s ease-out;
-        }
-
-        .animate-image-reveal {
-          animation: image-reveal 1s ease-out;
-        }
-
-        /* Glassmorphism effect */
-        .backdrop-blur-md {
-          backdrop-filter: blur(12px);
-        }
-
-        /* Smooth scrolling */
-        html {
-          scroll-behavior: smooth;
-        }
-      `}</style>
+          .animate-float {
+            animation: float 4s ease-in-out infinite;
+          }
+        `
+      }} />
     </div>
   );
 };

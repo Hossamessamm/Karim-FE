@@ -38,10 +38,10 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
   return (
     <div className="group relative">
       {/* Outer glow effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 via-purple-400/20 to-indigo-400/20 rounded-[1.5rem] blur-xl group-hover:blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-rose-400/20 via-orange-400/20 to-pink-400/20 rounded-[1.5rem] blur-xl group-hover:blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
       
       {/* Main card */}
-      <div className="relative bg-white/80 backdrop-blur-xl rounded-[1.5rem] border border-white/30 shadow-lg group-hover:shadow-2xl group-hover:shadow-blue-500/20 transition-all duration-500 overflow-hidden transform group-hover:-translate-y-2">
+      <div className="relative bg-white/80 backdrop-blur-xl rounded-[1.5rem] border border-white/30 shadow-lg group-hover:shadow-2xl group-hover:shadow-rose-500/20 transition-all duration-500 overflow-hidden transform group-hover:-translate-y-2">
         {/* Inner gradient border */}
         <div className="absolute inset-[1px] rounded-[1.5rem] bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
         
@@ -79,7 +79,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
           </div>
           
           {/* Floating elements */}
-          <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl shadow-lg flex items-center justify-center transform rotate-12 group-hover:rotate-0 transition-transform duration-500 opacity-80">
+          <div className="absolute -bottom-6 -right-6 w-12 h-12 bg-gradient-to-br from-rose-400 to-orange-500 rounded-xl shadow-lg flex items-center justify-center transform rotate-12 group-hover:rotate-0 transition-transform duration-500 opacity-80">
             <BookOpen className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -87,7 +87,7 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
         {/* Content Section */}
         <div className="p-6 relative">
           {/* Course title */}
-          <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">
+          <h3 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-rose-600 group-hover:to-orange-600 group-hover:bg-clip-text transition-all duration-300">
             {course.courseName}
           </h3>
           
@@ -101,11 +101,11 @@ const CourseCard: React.FC<{ course: Course }> = ({ course }) => {
             {/* View course button */}
             <Link 
               to={`/courses/${course.id}`}
-              className="group/btn relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 overflow-hidden"
+              className="group/btn relative inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-600 to-orange-600 text-white rounded-xl font-bold text-sm shadow-lg hover:shadow-xl hover:shadow-rose-500/50 transition-all duration-300 transform hover:scale-105 overflow-hidden"
             >
               <span className="relative z-10">عرض الباقة</span>
               <ArrowLeft className="w-4 h-4 relative z-10 transform group-hover/btn:translate-x-1 transition-transform rtl:rotate-180" />
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-rose-700 to-orange-700 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
             </Link>
             
             {/* Price display */}
