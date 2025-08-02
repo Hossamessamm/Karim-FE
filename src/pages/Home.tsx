@@ -213,7 +213,6 @@ const Home: React.FC = () => {
                   alt="د/ كريم أيوب"
                   className="w-full h-auto rounded-3xl shadow-2xl group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-rose-500/10 to-orange-500/10 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               </div>
               
               {/* Floating Experience Badge */}
