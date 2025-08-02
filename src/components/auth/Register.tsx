@@ -11,9 +11,7 @@ import {
   User, 
   Phone, 
   UserCheck,
-  ArrowRight,
-  Upload,
-  X
+  ArrowRight
 } from 'lucide-react';
 
 const Register: React.FC = () => {
@@ -24,8 +22,6 @@ const Register: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [parentPhone, setParentPhone] = useState('');
   const [academicYear, setAcademicYear] = useState('');
-  const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
@@ -84,9 +80,7 @@ const Register: React.FC = () => {
       formData.append('ParentPhone', parentPhone);
       formData.append('AcademicYear', academicYear);
       
-      if (image) {
-        formData.append('Image', image);
-      }
+
 
       const result = await register(formData);
 
@@ -100,37 +94,7 @@ const Register: React.FC = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-      if (!allowedTypes.includes(file.type)) {
-        setError('نوع الملف غير مدعوم. يرجى اختيار صورة بصيغة JPG أو PNG');
-        return;
-      }
-      
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError('حجم الصورة كبير جداً. يرجى اختيار صورة أصغر من 5 ميجابايت');
-        return;
-      }
 
-      setImage(file);
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setImage(null);
-    setImagePreview(null);
-  };
 
   const handleRetry = () => {
     setError('');
@@ -368,52 +332,7 @@ const Register: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ID Document Upload */}
-                <div>
-                  <label htmlFor="idDocument" className="block text-sm font-semibold text-slate-700 mb-2">
-                    صورة البطاقة أو شهادة الميلاد
-                  </label>
-                  <div className="relative">
-                    <div className="flex items-center justify-center w-full">
-                      <label htmlFor="idDocument" className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-xl cursor-pointer bg-white/50 backdrop-blur-sm hover:bg-white/70 transition-all duration-200 group">
-                        {imagePreview ? (
-                          <div className="relative w-full h-full">
-                            <img
-                              src={imagePreview}
-                              alt="معاينة الوثيقة"
-                              className="w-full h-full object-cover rounded-xl"
-                            />
-                            <button
-                              type="button"
-                              onClick={removeImage}
-                              className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-md"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                            <Upload className="w-8 h-8 mb-2 text-rose-500 group-hover:text-rose-600 transition-colors" />
-                            <p className="mb-1 text-sm text-slate-700 font-medium">
-                              <span className="font-semibold">اضغط لرفع الصورة</span> أو اسحبها هنا
-                            </p>
-                            <p className="text-xs text-slate-500">PNG, JPG أو JPEG (أقل من 5MB)</p>
-                          </div>
-                        )}
-                        <input
-                          id="idDocument"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                      </label>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-xs text-slate-500">
-                    يرجى رفع صورة واضحة لبطاقة الرقم القومي أو شهادة الميلاد للتحقق من الهوية
-                  </p>
-                </div>
+
 
                 {/* Submit Button */}
                 <div>
