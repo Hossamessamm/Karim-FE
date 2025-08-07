@@ -22,7 +22,7 @@ User-agent: YandexBot
 Allow: /
 
 # Sitemap location
-Sitemap: https://mahmoud-elsheikh.com/sitemap.xml
+Sitemap: https://karim-ayoub.com/sitemap.xml
 
 # Crawl delay (optional - be respectful to server resources)
 Crawl-delay: 1
