@@ -45,4 +45,4 @@ jobs:
             echo "✅ Deploy done. Running post-deploy tasks..."
             sudo chown -R www-data:www-data /var/www/karim/web/build
             sudo chmod -R 755 /var/www/karim/web/build
-            echo "🚀 Permissions set! No nginx reload needed." 
+            echo "🚀 Permissions set! No nginx reload needed."
